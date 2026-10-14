@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ECEDF8"><link rel="manifest" href="manifest.json">
+<title>TG Client</title>
+<style>
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{font-family:system-ui,sans-serif;background:#F7F8FF;color:#1B1B21}
+.scr{display:none;height:100%;flex-direction:column}.scr.on{display:flex}
+h1{font-size:36px;letter-spacing:-1px;margin:0}
+.pad{padding:32px 24px;display:flex;flex-direction:column;gap:16px;flex:1;overflow:auto}
+p{margin:0;color:#44464F;line-height:1.4}
+input{background:#E9EAF4;border:0;border-radius:20px;padding:16px 18px;font-size:16px;width:100%;outline:0}
+input:focus{box-shadow:0 0 0 2px #3B4FC4}
+.btn{height:60px;border:0;border-radius:30px;background:#3B4FC4;color:#fff;font-size:18px;font-weight:800;width:100%}
+.btn.t{background:#E1E3FF;color:#27379A}
+.err{background:#FFD9E2;color:#5C1A35;border-radius:20px;padding:12px 16px;display:none}
+.top{display:flex;align-items:center;gap:12px;padding:16px;background:#ECEDF8;border-radius:0 0 28px 28px}
+.top b{font-size:20px;flex:1}.top button{border:0;background:#E1E3FF;border-radius:20px;height:44px;padding:0 16px;font-weight:600}
+.list{flex:1;overflow:auto;padding:8px}
+.row{display:flex;gap:14px;align-items:center;padding:10px 12px;border-radius:28px}
+.row:active{background:#E1E3FF}
+.av{width:52px;height:52px;border-radius:18px;background:#DCE4FF;color:#27379A;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;flex:none}
+.m{flex:1;min-width:0}.m b{display:block}.m span{color:#5A5C66;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.bd{background:#3B4FC4;color:#fff;border-radius:12px;min-width:24px;height:24px;font-size:13px;display:flex;align-items:center;justify-content:center;padding:0 6px}
+.msgs{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:6px}
+.b{max-width:80%;padding:10px 16px;border-radius:24px 24px 24px 8px;background:#E9EAF4;white-space:pre-wrap;word-break:break-word}
+.b.me{align-self:flex-end;background:#3B4FC4;color:#fff;border-radius:24px 24px 8px 24px}
+.bar{display:flex;gap:10px;padding:8px 16px calc(16px + env(safe-area-inset-bottom))}
+.bar input{border-radius:28px}.bar .btn{width:56px;height:56px;border-radius:20px;font-size:22px}
+</style></head><body>
+
+<section class="scr" id="keys"><div class="pad">
+<h1>Ключи Telegram API</h1>
+<p>Получить свои: my.telegram.org → API development tools. Хранятся только на этом устройстве.</p>
+<input id="aid" inputmode="numeric" placeholder="api_id"><input id="ahash" placeholder="api_hash">
+<div class="err" id="e-keys"></div>
+<button class="btn" id="b-keys">Продолжить</button></div></section>
+
+<section class="scr" id="phone"><div class="pad">
+<h1>Вход</h1><p>Номер телефона в международном формате.</p>
+<input id="ph" type="tel" placeholder="+7…"><div class="err" id="e-phone"></div>
+<button class="btn" id="b-phone">Получить код</button>
+<button class="btn t" id="b-chkeys">Сменить ключи</button></div></section>
+
+<section class="scr" id="code"><div class="pad">
+<h1>Код</h1><p>Код пришёл в Telegram на другом устройстве или по SMS.</p>
+<input id="cd" inputmode="numeric" placeholder="12345"><div class="err" id="e-code"></div>
+<button class="btn" id="b-code">Войти</button></div></section>
+
+<section class="scr" id="pw"><div class="pad">
+<h1>Пароль</h1><p>Облачный пароль (двухфакторная защита).</p>
+<input id="pwd" type="password" placeholder="Пароль"><button class="btn" id="b-pw">Войти</button></div></section>
+
+<section class="scr" id="chats"><div class="top"><b>Чаты</b><button id="b-ref">Обновить</button><button id="b-out">Выйти</button></div>
+<div class="list" id="dl"></div></section>
+
+<section class="scr" id="chat"><div class="top"><button id="b-back">←</button><b id="ct"></b></div>
+<div class="msgs" id="ms"></div>
+<div class="bar"><input id="tx" placeholder="Сообщение"><button class="btn" id="b-send">➤</button></div></section>
+
+<script type="module">
+const $=i=>document.getElementById(i), ls=localStorage;
+const show=id=>{document.querySelectorAll('.scr').forEach(s=>s.classList.toggle('on',s.id===id))};
+const err=(id,t)=>{const e=$('e-'+id);if(e){e.textContent=t;e.style.display=t?'block':'none'}};
+let client, waiters={};
+const ask=id=>{show(id);return new Promise(r=>waiters[id]=r)};
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+async function lib(){
+  const v='2.26';
+  const m=await import(`https://esm.sh/telegram@${v}`);
+  const s=await import(`https://esm.sh/telegram@${v}/sessions`);
+  return {TelegramClient:m.TelegramClient,StringSession:s.StringSession};
+}
+async function boot(){
+  const id=+ls.tg_id, hash=ls.tg_hash;
+  if(!id||!hash) return show('keys');
+  try{
+    const {TelegramClient,StringSession}=await lib();
+    client=new TelegramClient(new StringSession(ls.tg_session||''),id,hash,{connectionRetries:5,useWSS:true});
+    await client.start({
+      phoneNumber:()=>ask('phone').then(()=>$('ph').value.trim()),
+      phoneCode:()=>ask('code').then(()=>$('cd').value.trim()),
+      password:()=>ask('pw').then(()=>$('pwd').value),
+      onError:e=>{err('phone',e.message||String(e));return false}
+    });
+    ls.tg_session=client.session.save();
+    loadChats();
+  }catch(e){ show('phone'); err('phone','Ошибка: '+(e.message||e)); }
+}
+$('b-keys').onclick=()=>{
+  const i=$('aid').value.trim(),h=$('ahash').value.trim();
+  if(!/^\d+$/.test(i)||h.length<20) return err('keys','Проверь api_id (цифры) и api_hash (32 символа)');
+  ls.tg_id=i;ls.tg_hash=h;boot();
+};
+$('b-chkeys').onclick=()=>{ls.clear();location.reload()};
+$('b-phone').onclick=()=>waiters.phone&&waiters.phone();
+$('b-code').onclick=()=>waiters.code&&waiters.code();
+$('b-pw').onclick=()=>waiters.pw&&waiters.pw();
+$('b-out').onclick=async()=>{try{await client.invoke(new (await import('https://esm.sh/telegram@2.26')).Api.auth.LogOut())}catch{} ls.removeItem('tg_session');location.reload()};
+$('b-ref').onclick=()=>loadChats();
+
+let cur;
+async function loadChats(){
+  show('chats');const dl=$('dl');dl.textContent='Загрузка…';
+  try{
+    const ds=await client.getDialogs({limit:40});
+    dl.textContent='';
+    for(const d of ds){
+      const r=document.createElement('div');r.className='row';
+      const t=d.title||'Без имени';
+      r.innerHTML=`<div class="av"></div><div class="m"><b></b><span></span></div>`;
+      r.querySelector('.av').textContent=t[0].toUpperCase();
+      r.querySelector('b').textContent=t;
+      r.querySelector('span').textContent=d.message?.message||'';
+      if(d.unreadCount){const b=document.createElement('div');b.className='bd';b.textContent=d.unreadCount;r.append(b)}
+      r.onclick=()=>openChat(d);dl.append(r);
+    }
+  }catch(e){dl.textContent='Ошибка: '+(e.message||e)}
+}
+async function openChat(d){
+  cur=d;$('ct').textContent=d.title;show('chat');$('ms').textContent='Загрузка…';
+  const ms=await client.getMessages(d.entity,{limit:40});
+  const box=$('ms');box.textContent='';
+  for(const m of ms.reverse()){
+    const b=document.createElement('div');b.className='b'+(m.out?' me':'');
+    b.textContent=m.message||'[не текст]';box.append(b);
+  }
+  box.scrollTop=box.scrollHeight;
+}
+$('b-back').onclick=loadChats;
+$('b-send').onclick=async()=>{
+  const t=$('tx').value.trim();if(!t||!cur)return;$('tx').value='';
+  const b=document.createElement('div');b.className='b me';b.textContent=t;$('ms').append(b);$('ms').scrollTop=1e9;
+  try{await client.sendMessage(cur.entity,{message:t})}catch(e){b.textContent+='  (не отправлено)'}
+};
+boot();
+</script></body></html>
