@@ -2,7 +2,7 @@
 <html lang="ru"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ECEDF8"><link rel="manifest" href="manifest.json">
-<title>TG Client</title>
+<title>SoGram</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{height:100%;margin:0}
 body{font-family:system-ui,sans-serif;background:#F7F8FF;color:#1B1B21}
@@ -87,6 +87,17 @@ img.sk{display:block;width:150px;height:150px;object-fit:contain}
 .dock .bar .btn{width:52px;height:52px;border-radius:18px}
 .dock .sp{background:none;border-radius:0}
 .dock .sgrid{padding-bottom:10px}
+.rcs{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.rcs span{display:inline-flex;gap:5px;align-items:center;padding:3px 10px;border-radius:14px;background:#3B4FC41F;font-size:15px;font-weight:600}
+.b.me .rcs span{background:#FFFFFF2E}
+.rcs span.mine{background:#3B4FC4;color:#fff}.b.me .rcs span.mine{background:#fff;color:#27379A}
+.mn .rr{display:flex;padding:8px 8px 2px}.mn .rr button{width:38px;padding:6px 0;text-align:center;font-size:22px}
+textarea{background:#E9EAF4;border:0;border-radius:20px;padding:16px 18px;font-size:17px;width:100%;outline:0;font-family:inherit;resize:none;min-height:96px}
+textarea:focus{box-shadow:0 0 0 2px #3B4FC4}
+.ver{margin:28px 0 12px;color:#8A8C99;font-size:14px;text-align:center}
+body{font-size:17px}.b{font-size:18px;line-height:1.35}.b .t{font-size:12px}.q{font-size:14px}
+.m b{font-size:17px}.m span{font-size:15px}.sub{font-size:14px}.pr div{font-size:17px}
+.dock .bar input{font-size:17px}.btn{font-size:18px}
 </style></head><body>
 
 <section class="scr" id="keys"><div class="pad">
@@ -111,7 +122,7 @@ img.sk{display:block;width:150px;height:150px;object-fit:contain}
 <h1>Пароль</h1><p>Облачный пароль (двухфакторная защита).</p>
 <input id="pwd" type="password" placeholder="Пароль"><button class="btn" id="b-pw">Войти</button></div></section>
 
-<section class="scr" id="chats"><div class="top"><b>Чаты</b><button id="b-ref">Обновить</button><button id="b-out">Выйти</button></div>
+<section class="scr" id="chats"><div class="top"><div class="av sm" id="meav"></div><b>Чаты</b><button id="b-ref">Обновить</button></div>
 <div class="list" id="dl"></div></section>
 
 <section class="scr" id="chat"><div class="top"><button id="b-back">←</button><div class="av sm" id="ca"></div><div class="tt"><b id="ct"></b><span class="sub" id="cs"></span></div></div>
@@ -124,7 +135,9 @@ img.sk{display:block;width:150px;height:150px;object-fit:contain}
 </div><input type="file" id="fi" multiple style="display:none"></section>
 <section class="scr" id="prof"><div class="top"><button id="pb">←</button><b>Профиль</b></div><div class="pad" id="pc" style="align-items:center"></div></section>
 <div class="vw" id="vw"><div class="vb"><button id="vx" aria-label="Закрыть">✕</button><button id="vd" aria-label="Скачать">⬇</button></div><div class="vc" id="vc"></div></div>
-<div class="mn" id="mn"><button id="m-reply">Ответить</button><button id="m-copy">Копировать</button></div>
+<section class="scr" id="me"><div class="top"><button id="mb">←</button><b>Мой профиль</b><button id="me-edit">Изменить</button></div><div class="pad" id="mc" style="align-items:center"></div></section>
+<input type="file" id="mfi" accept="image/*" style="display:none">
+<div class="mn" id="mn"><div class="rr" id="rr"></div><button id="m-reply">Ответить</button><button id="m-copy">Копировать</button></div>
 
 <script type="module">
 const $=i=>document.getElementById(i), ls=localStorage;
@@ -144,7 +157,7 @@ async function boot(){
       const mod=await import(u), d=mod.default||{}, pick=k=>mod[k]??d[k];
       const SS=pick('StringSession')||pick('sessions')?.StringSession, TC=pick('TelegramClient'), Api=pick('Api'), CF=pick('CustomFile'), Bf=pick('Buffer');
       if(!SS||!TC) throw new Error('нет нужных классов. mod: '+Object.keys(mod).slice(0,12).join(',')+' | default: '+Object.keys(d).slice(0,12).join(','));
-      client=new TC(new SS(ls.tg_session||''),id,hash,{connectionRetries:3,useWSS:true,deviceModel:'Web',systemVersion:'Android',appVersion:'1.0',langCode:'ru',systemLangCode:'ru'});
+      client=new TC(new SS(ls.tg_session||''),id,hash,{connectionRetries:3,useWSS:true,deviceModel:'SoGram Web',systemVersion:'Web',appVersion:'6.0 alpha',langCode:'ru',systemLangCode:'ru'});
       await client.connect(); LIB={Api,CF,Bf}; last=null; break;
     }catch(e){last=e;console.warn(u,e)}
   }
@@ -159,6 +172,7 @@ async function boot(){
     });
     ls.tg_session=client.session.save();
     startLive();
+    initMe();
     loadChats();
   }catch(e){ show('phone'); err('phone','Ошибка: '+(e.message||e)); }
 }
@@ -171,7 +185,7 @@ $('b-chkeys').onclick=()=>{ls.clear();location.reload()};
 $('b-phone').onclick=()=>waiters.phone&&waiters.phone();
 $('b-code').onclick=()=>waiters.code&&waiters.code();
 $('b-pw').onclick=()=>waiters.pw&&waiters.pw();
-$('b-out').onclick=async()=>{try{await client.invoke(new LIB.Api.auth.LogOut())}catch{} ls.removeItem('tg_session');location.reload()};
+async function logout(){try{await client.invoke(new LIB.Api.auth.LogOut())}catch{} ls.removeItem('tg_session');location.reload()}
 $('b-ref').onclick=()=>loadChats();
 
 let cur=null, busy=false, again=false, lastSig='', replyMsg=null, tick=0, kt=0, readMax=0, lastMarked=0;
@@ -341,7 +355,12 @@ function buildMsg(m,d,byId,need){
   }
   if(m.message&&k!=='sticker'){const tx=document.createElement('div');tx.textContent=m.message;b.append(tx)}
   else if(k==='text'&&!m.message){const tx=document.createElement('div');tx.textContent='[не поддерживается]';b.append(tx)}
-  const tm=document.createElement('div');tm.className='t';tm.textContent=hm(m.date)+(m.editDate?' · изм.':'');
+  const rs=(m.reactions&&m.reactions.results)||[];
+  const em=rs.filter(r=>r.reaction&&r.reaction.emoticon);
+  if(em.length){const w=document.createElement('div');w.className='rcs';
+    for(const r of em){const c=document.createElement('span');if(r.chosenOrder!=null)c.className='mine';c.textContent=r.reaction.emoticon+' '+r.count;c.onclick=ev=>{ev.stopPropagation();react(m,r.reaction.emoticon)};w.append(c)}
+    b.append(w)}
+  const tm=document.createElement('div');tm.className='t';tm.textContent=hm(m.date)+(m.editDate&&!rs.length?' · изм.':'');
   if(m.out&&!(d.isChannel&&!d.isGroup)){const rd=d.isUser&&m.id<=readMax;const ck=document.createElement('span');ck.className='ck'+(rd?' rd':'');ck.innerHTML=rd?CK2:CK1;tm.append(ck)}
   b.append(tm);
   b.onclick=ev=>showMenu(ev,m);
@@ -356,7 +375,7 @@ async function loadMsgs(first){
     if(cur!==d) return;
     const inc=ms.find(m=>!m.out);
     if(inc&&inc.id>lastMarked&&!document.hidden&&isOn('chat')){lastMarked=inc.id;Promise.resolve(client.markAsRead(d.entity)).catch(()=>{})}
-    const sig=ms.map(m=>m.id+':'+(m.editDate||0)).join(',')+'|'+rcache.size+'|'+readMax;
+    const sig=ms.map(m=>m.id+':'+(m.editDate||0)+':'+rsig(m)).join(',')+'|'+rcache.size+'|'+readMax;
     if(!first&&sig===lastSig) return;
     lastSig=sig;
     const box=$('ms');
@@ -478,6 +497,89 @@ $('ca').onclick=openProfile;
 document.querySelector('#chat .tt').onclick=openProfile;
 $('pb').onclick=()=>{show('chat');lastSig='';loadMsgs()};
 
+/* ---------- реакции ---------- */
+const rsig=m=>((m.reactions&&m.reactions.results)||[]).map(r=>((r.reaction&&r.reaction.emoticon)||'?')+r.count+(r.chosenOrder!=null?'*':'')).join('');
+async function react(m,emo){
+  if(!cur) return;
+  const mine=((m.reactions&&m.reactions.results)||[]).some(r=>r.chosenOrder!=null&&r.reaction&&r.reaction.emoticon===emo);
+  try{
+    await client.invoke(new LIB.Api.messages.SendReaction({peer:cur.inputEntity,msgId:m.id,reaction:mine?[]:[new LIB.Api.ReactionEmoji({emoticon:emo})]}));
+  }catch(e){$('cs').textContent='Реакция: '+(e.message||e)}
+  lastSig='';loadMsgs();
+}
+['👍','❤️','🔥','😂','😮','😢'].forEach(e=>{
+  const b=document.createElement('button');b.textContent=e;
+  b.onclick=()=>{$('mn').classList.remove('on');if(menuMsg)react(menuMsg,e)};$('rr').append(b);
+});
+
+/* ---------- мой профиль ---------- */
+let ME=null;
+async function initMe(){
+  try{ME=await client.getMe();const el=$('meav');el.textContent=(ME.firstName||'?')[0].toUpperCase();setAvatar(el,ME,'me')}catch{}
+}
+$('meav').onclick=()=>openMe(false);
+$('mb').onclick=()=>loadChats();
+$('me-edit').onclick=()=>openMe(true);
+async function openMe(edit){
+  show('me');const mc=$('mc');mc.textContent='';const A=LIB.Api;
+  $('me-edit').style.display=edit?'none':'';
+  if(!ME) await initMe();
+  let about='';
+  try{const r=await client.invoke(new A.users.GetFullUser({id:new A.InputUserSelf()}));about=(r.fullUser&&r.fullUser.about)||'';if(r.users&&r.users[0])ME=r.users[0]}catch{}
+  const u=ME||{};
+  const av=document.createElement('div');av.className='av big';av.textContent=(u.firstName||'?')[0].toUpperCase();mc.append(av);
+  (async()=>{
+    let x=mcache.get('MA');
+    if(x===undefined){try{x=toURL(await client.downloadProfilePhoto(u,{isBig:true}),'image/jpeg')}catch{x=null}mcache.set('MA',x)}
+    if(x){paint(av,x);if(!edit)av.onclick=()=>{openViewer();viewImg(x,'avatar.jpg')}}
+  })();
+  const mk=(tag,ph,val)=>{const e=document.createElement(tag);if(tag==='input')e.type='text';e.placeholder=ph;e.value=val||'';return e};
+  if(!edit){
+    const h=document.createElement('div');h.className='pn';h.textContent=[u.firstName,u.lastName].filter(Boolean).join(' ');mc.append(h);
+    const box=document.createElement('div');box.className='pi';mc.append(box);
+    const add=(l,v)=>{if(!v)return;const r=document.createElement('div');r.className='pr';r.innerHTML='<small></small><div></div>';r.firstChild.textContent=l;r.lastChild.textContent=v;box.append(r)};
+    add('Телефон',u.phone?'+'+u.phone:'');add('Имя пользователя',u.username?'@'+u.username:'');add('О себе',about);
+  }else{
+    const sc=document.createElement('button');sc.className='btn t';sc.textContent='Сменить фото';
+    sc.onclick=()=>$('mfi').click();mc.append(sc);
+    const f1=mk('input','Имя',u.firstName),f2=mk('input','Фамилия',u.lastName),f3=mk('textarea','О себе',about),f4=mk('input','Имя пользователя (без @)',u.username);
+    f3.maxLength=140;f4.autocapitalize='off';
+    const er=document.createElement('div');er.className='err';
+    const sv=document.createElement('button');sv.className='btn';sv.textContent='Сохранить';
+    const cn=document.createElement('button');cn.className='btn t';cn.textContent='Отмена';
+    cn.onclick=()=>openMe(false);
+    sv.onclick=async()=>{
+      er.style.display='none';
+      if(!f1.value.trim()){er.textContent='Имя не может быть пустым';er.style.display='block';return}
+      sv.textContent='Сохранение…';
+      try{
+        await client.invoke(new A.account.UpdateProfile({firstName:f1.value.trim(),lastName:f2.value.trim(),about:f3.value}));
+        const nu=f4.value.trim().replace(/^@/,'');
+        if(nu!==(u.username||'')) await client.invoke(new A.account.UpdateUsername({username:nu}));
+        ME=null;await initMe();openMe(false);
+      }catch(e){er.textContent=(e.message||String(e));er.style.display='block';sv.textContent='Сохранить'}
+    };
+    mc.append(f1,f2,f3,f4,er,sv,cn);
+  }
+  if(!edit){
+    const lo=document.createElement('button');lo.className='btn t';lo.style.marginTop='24px';lo.textContent='Выйти из аккаунта';lo.onclick=()=>{if(confirm('Выйти из аккаунта?'))logout()};mc.append(lo);
+    const sp=document.createElement('div');sp.style.height='40vh';mc.append(sp);
+    const v=document.createElement('div');v.className='ver';v.textContent='SoGram v6 (alpha) • Web';mc.append(v);
+  }
+}
+$('mfi').onchange=async e=>{
+  const f=e.target.files[0];e.target.value='';if(!f) return;
+  try{
+    if(!LIB.CF||!LIB.Bf) throw new Error('нужно пересобрать telegram.js');
+    const cf=new LIB.CF(f.name,f.size,'',LIB.Bf.from(await f.arrayBuffer()));
+    const up=await client.uploadFile({file:cf,workers:1});
+    await client.invoke(new LIB.Api.photos.UploadProfilePhoto({file:up}));
+    mcache.delete('MA');mcache.delete('ame');
+    const el=$('meav');el.style.backgroundImage='';setAvatar(el,ME,'me');
+    openMe(true);
+  }catch(err){alert('Не удалось сменить фото: '+(err.message||err))}
+};
+
 /* ---------- ответ и меню сообщения ---------- */
 function setReply(m){
   replyMsg=m;$('rp').classList.toggle('on',!!m);
@@ -487,8 +589,8 @@ $('rx').onclick=()=>setReply(null);
 let menuMsg=null;
 function showMenu(ev,m){
   menuMsg=m;const mn=$('mn');mn.classList.add('on');
-  mn.style.left=Math.max(8,Math.min(ev.clientX-60,innerWidth-186))+'px';
-  mn.style.top=Math.max(70,ev.clientY-110)+'px';
+  mn.style.left=Math.max(8,Math.min(ev.clientX-100,innerWidth-250))+'px';
+  mn.style.top=Math.max(70,ev.clientY-150)+'px';
   ev.stopPropagation();
 }
 $('m-reply').onclick=()=>{setReply(menuMsg);$('mn').classList.remove('on');$('tx').focus()};
