@@ -130,10 +130,10 @@ input[type=range]::-moz-range-thumb{width:5px;height:44px;border:0;border-radius
 
 /* загрузка медиа — M3 Expressive */
 .mw{position:relative;width:fit-content;max-width:100%;margin-bottom:4px}
-.mw img.ph{margin-bottom:0;transition:filter .3s}.mw:not(.ok) img.ph{filter:brightness(.82)}
+.mw img.ph{margin-bottom:0}
 .mw .du{position:absolute;left:8px;top:8px;background:#0008;color:#fff;border-radius:10px;padding:2px 8px;font-size:12px}
 .mw.ok .du{display:none}
-.dlb{position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;border:0;padding:0;border-radius:22px;background:#000000A6;color:#fff;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);cursor:pointer;z-index:2;transition:border-radius .35s cubic-bezier(.34,1.56,.64,1),transform .2s cubic-bezier(.34,1.56,.64,1)}
+.dlb{position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;border:0;padding:0;border-radius:22px;background:#000000B8;color:#fff;cursor:pointer;z-index:2;transition:border-radius .35s cubic-bezier(.34,1.56,.64,1),transform .2s cubic-bezier(.34,1.56,.64,1)}
 .dlb:active{transform:scale(.9)}
 .dlb.ld{border-radius:50%}
 .dlb .rg{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .2s}.dlb.ld .rg{opacity:1}
@@ -188,6 +188,11 @@ input,textarea{transition:box-shadow .25s var(--em),background-color .25s var(--
 .rp button,.vb button{display:flex;align-items:center;justify-content:center;padding:0}
 .rp button{color:#27379A}
 .fl i{color:#27379A}.b.me .fl i{color:#fff;background:#FFFFFF2E}
+
+/* оптимизация */
+.msgs,.list,.sgrid,.vc{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.dlb.ld{will-change:transform}
+img{image-rendering:auto}
 </style></head><body>
 
 <section class="scr" id="keys"><div class="pad">
@@ -401,13 +406,14 @@ const DLI='<svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><
       STI='<svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><rect x="7.5" y="7.5" width="9" height="9" rx="2.5"/></svg>';
 function photoBytes(p){let mx=0;for(const s of ((p&&p.sizes)||[])){const v=s.size!=null?num(s.size):(s.sizes&&s.sizes.length?num(s.sizes[s.sizes.length-1]):0);if(v>mx)mx=v}return mx}
 function wavy(a0,a1,A,ph){
-  const R=24,N=10,n=Math.max(6,Math.ceil((a1-a0)*R/1.2));let d='';
+  const R=24,N=10,n=Math.max(6,Math.ceil((a1-a0)*R/2));let d='';
   for(let i=0;i<=n;i++){const a=a0+(a1-a0)*i/n,r=R+A*Math.sin(N*a-ph);d+=(i?'L':'M')+(32+r*Math.cos(a)).toFixed(2)+' '+(32+r*Math.sin(a)).toFixed(2)}
   return d;
 }
 function dlTick(t){
   const els=document.querySelectorAll('.dlb.ld');
   if(!els.length&&!dls.size){dlraf=0;return}
+  if(document.hidden){dlraf=requestAnimationFrame(dlTick);return}
   const T=Math.PI*2,gap=.34;
   els.forEach(el=>{
     const st=dls.get(el.dataset.dk);if(!st)return;
@@ -419,7 +425,7 @@ function dlTick(t){
     const ac=el.querySelector('.ac'),tr=el.querySelector('.tr'),ph=t/160;
     ac.setAttribute('d',wavy(a0,a0+len,2.4,ph));
     const t0=a0+len+gap,t1=a0+T-gap;
-    tr.setAttribute('d',t1>t0?wavy(t0,t1,0,0):'');
+    if(t1>t0){const c=a=>(32+24*Math.cos(a)).toFixed(2)+' '+(32+24*Math.sin(a)).toFixed(2);tr.setAttribute('d','M'+c(t0)+'A24 24 0 '+((t1-t0)>Math.PI?1:0)+' 1 '+c(t1))}else tr.setAttribute('d','');
   });
   dlraf=requestAnimationFrame(dlTick);
 }
@@ -473,7 +479,7 @@ function buildMsg(m,d,byId,need){
     if(mcache.get(key)) im.src=mcache.get(key); else docThumb(m.document).then(u=>fillImgs(key,u));
     b.append(im);
   }else if(k==='photo'){
-    const im=document.createElement('img');im.className='ph';const key='p'+d.id+':'+m.id,fk='f'+key;im.dataset.k=key;
+    const im=document.createElement('img');im.decoding='async';im.className='ph';const key='p'+d.id+':'+m.id,fk='f'+key;im.dataset.k=key;
     const w=document.createElement('div');w.className='mw'+(mcache.get(fk)?' ok':'');w.dataset.wk=fk;
     im.onclick=ev=>{if(mcache.get(fk)){ev.stopPropagation();openPhoto(m,key)}};
     if(mcache.get(fk)) im.src=mcache.get(fk); else if(mcache.get(key)) im.src=mcache.get(key); else photoThumb(m,key).then(u=>{if(!mcache.get(fk))fillImgs(key,u)});
