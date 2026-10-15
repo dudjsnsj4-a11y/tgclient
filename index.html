@@ -67,22 +67,27 @@ let client, LIB, waiters={};
 const ask=id=>{show(id);return new Promise(r=>waiters[id]=r)};
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 
-async function lib(){
-  const v='2.26';
-  const m=await import(`https://esm.sh/telegram@${v}`);
-  return {TelegramClient:m.TelegramClient,StringSession:m.sessions.StringSession,Api:m.Api};
-}
+const SRC=['https://esm.sh/telegram@2.26?bundle','https://cdn.jsdelivr.net/npm/telegram@2.26/+esm','https://esm.sh/telegram@2.26'];
 async function boot(){
   const id=+ls.tg_id, hash=ls.tg_hash;
   if(!id||!hash) return show('keys');
+  show('phone');err('phone','Подключение…');
+  let last=null;
+  for(const u of SRC){
+    try{
+      const mod=await import(u), m=mod.TelegramClient?mod:(mod.default||mod);
+      client=new m.TelegramClient(new m.sessions.StringSession(ls.tg_session||''),id,hash,{connectionRetries:3,useWSS:true});
+      await client.connect(); LIB={Api:m.Api}; last=null; break;
+    }catch(e){last=e;console.warn(u,e)}
+  }
+  if(last){ show('phone'); return err('phone','Не удалось подключиться: '+(last.message||last)); }
+  err('phone','');
   try{
-    const {TelegramClient,StringSession,Api}=await lib();LIB={Api};
-    client=new TelegramClient(new StringSession(ls.tg_session||''),id,hash,{connectionRetries:5,useWSS:true});
     await client.start({
       phoneNumber:()=>ask('phone').then(()=>$('ph').value.trim()),
       phoneCode:()=>ask('code').then(()=>$('cd').value.trim()),
       password:()=>ask('pw').then(()=>$('pwd').value),
-      onError:e=>{err('phone',e.message||String(e));return false}
+      onError:e=>{show('phone');err('phone',e.message||String(e));return false}
     });
     ls.tg_session=client.session.save();
     loadChats();
