@@ -64,6 +64,18 @@ img.sk{display:block;width:150px;height:150px;object-fit:contain}
 .sgrid>div:active{background:#C9CFFF}.sgrid img{width:100%;height:100%;object-fit:contain}
 .mn{position:fixed;display:none;background:#fff;border-radius:18px;box-shadow:0 6px 20px #0004;overflow:hidden;z-index:9}.mn.on{display:block}
 .mn button{display:block;width:170px;text-align:left;border:0;background:none;padding:14px 18px;font-size:15px;font-weight:600}.mn button:active{background:#E1E3FF}
+.ck{margin-left:3px;letter-spacing:-2px}.ck.rd{color:#7FFFD4;font-weight:800}
+.vw{position:fixed;inset:0;background:#000000F2;display:none;flex-direction:column;z-index:20}.vw.on{display:flex}
+.vb{display:flex;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top)) 16px 8px}
+.vb button{width:48px;height:48px;border:0;border-radius:50%;background:#FFFFFF26;color:#fff;font-size:20px}
+.vc{flex:1;overflow:auto;display:flex;color:#fff}
+.vc .vimg{margin:auto;max-width:100%;max-height:100%;object-fit:contain}.vc .vimg.zoom{max-width:none;max-height:none;width:220%}
+.vc video{margin:auto;max-width:100%;max-height:100%}.vc .vl{margin:auto;position:absolute;left:0;right:0;text-align:center;top:50%;pointer-events:none}
+.av.big{width:120px;height:120px;border-radius:40px;font-size:48px}
+.pn{font-size:26px;font-weight:800;text-align:center}
+.pi{width:100%;display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.pr{background:#E9EAF4;border-radius:20px;padding:12px 18px}.pr small{display:block;color:#3B4FC4;font-weight:600;font-size:12px}.pr div{font-size:16px;word-break:break-word;white-space:pre-wrap}
+#ca,#chat .tt{cursor:pointer}
 </style></head><body>
 
 <section class="scr" id="keys"><div class="pad">
@@ -99,6 +111,8 @@ img.sk{display:block;width:150px;height:150px;object-fit:contain}
 <button id="p-stk" aria-label="Стикеры"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8 14c1 1.5 2.5 2.2 4 2.2s3-.7 4-2.2M9 9.5h.01M15 9.5h.01"/></svg></button></div></div>
 <div class="sp" id="sp"><div class="stabs" id="st"></div><div class="sgrid" id="sg"></div></div>
 <input type="file" id="fi" multiple style="display:none"></section>
+<section class="scr" id="prof"><div class="top"><button id="pb">←</button><b>Профиль</b></div><div class="pad" id="pc" style="align-items:center"></div></section>
+<div class="vw" id="vw"><div class="vb"><button id="vx" aria-label="Закрыть">✕</button><button id="vd" aria-label="Скачать">⬇</button></div><div class="vc" id="vc"></div></div>
 <div class="mn" id="mn"><button id="m-reply">Ответить</button><button id="m-copy">Копировать</button></div>
 
 <script type="module">
@@ -149,7 +163,7 @@ $('b-pw').onclick=()=>waiters.pw&&waiters.pw();
 $('b-out').onclick=async()=>{try{await client.invoke(new LIB.Api.auth.LogOut())}catch{} ls.removeItem('tg_session');location.reload()};
 $('b-ref').onclick=()=>loadChats();
 
-let cur=null, busy=false, again=false, lastSig='', replyMsg=null, tick=0, kt=0;
+let cur=null, busy=false, again=false, lastSig='', replyMsg=null, tick=0, kt=0, readMax=0, lastMarked=0;
 const pad=n=>String(n).padStart(2,'0');
 const hm=ts=>{const d=new Date(ts*1000);return pad(d.getHours())+':'+pad(d.getMinutes())};
 const dayDiff=ts=>{const d=new Date(ts*1000),n=new Date();return Math.round((new Date(n.getFullYear(),n.getMonth(),n.getDate())-new Date(d.getFullYear(),d.getMonth(),d.getDate()))/864e5)};
@@ -239,7 +253,8 @@ async function loadChats(quiet){
       r.innerHTML='<div class="av"></div><div class="m"><b></b><span></span></div><div class="rt"><div class="tm"></div></div>';
       const av=r.querySelector('.av');av.textContent=t[0].toUpperCase();setAvatar(av,d.entity,String(d.id));
       r.querySelector('b').textContent=t;
-      r.querySelector('span').textContent=labelOf(d.message);
+      {const lm=d.message,ro=(d.dialog&&d.dialog.readOutboxMaxId)||0,bc=d.isChannel&&!d.isGroup;
+      r.querySelector('span').textContent=(lm&&lm.out&&!bc?((d.isUser&&lm.id<=ro)?'✓✓ ':'✓ '):'')+labelOf(lm)}
       r.querySelector('.tm').textContent=d.date?listTime(d.date):'';
       if(d.unreadCount){const b=document.createElement('div');b.className='bd';b.textContent=d.unreadCount;r.querySelector('.rt').append(b)}
       r.onclick=()=>openChat(d);frag.append(r);
@@ -283,7 +298,7 @@ function buildMsg(m,d,byId,need){
     if(mcache.get(key)) im.src=mcache.get(key); else docThumb(m.document).then(u=>fillImgs(key,u));
     b.append(im);
   }else if(k==='photo'){
-    const im=document.createElement('img');im.className='ph';const key='p'+d.id+':'+m.id;im.dataset.k=key;
+    const im=document.createElement('img');im.className='ph';const key='p'+d.id+':'+m.id;im.dataset.k=key;im.onclick=ev=>{ev.stopPropagation();openPhoto(m,key)};
     if(mcache.get(key)) im.src=mcache.get(key); else photoThumb(m,key).then(u=>fillImgs(key,u));
     b.append(im);
   }else if(k!=='text'){
@@ -298,7 +313,7 @@ function buildMsg(m,d,byId,need){
     f.querySelector('i').textContent=ic;f.querySelector('b').textContent=nm;
     f.querySelector('small').textContent=[dur?Math.floor(dur/60)+':'+pad(dur%60):'',sz].filter(Boolean).join(' · ');
     f.onclick=async ev=>{
-      ev.stopPropagation();const sm=f.querySelector('small'),old=sm.textContent;sm.textContent='Загрузка…';
+      ev.stopPropagation();if(k==='video'||k==='vnote'){openVideo(m);return}const sm=f.querySelector('small'),old=sm.textContent;sm.textContent='Загрузка…';
       try{
         const buf=await client.downloadMedia(m,{});
         const mime=(m.document&&m.document.mimeType)||'application/octet-stream';
@@ -312,7 +327,9 @@ function buildMsg(m,d,byId,need){
   }
   if(m.message&&k!=='sticker'){const tx=document.createElement('div');tx.textContent=m.message;b.append(tx)}
   else if(k==='text'&&!m.message){const tx=document.createElement('div');tx.textContent='[не поддерживается]';b.append(tx)}
-  const tm=document.createElement('div');tm.className='t';tm.textContent=hm(m.date)+(m.editDate?' · изм.':'');b.append(tm);
+  const tm=document.createElement('div');tm.className='t';tm.textContent=hm(m.date)+(m.editDate?' · изм.':'');
+  if(m.out&&!(d.isChannel&&!d.isGroup)){const rd=d.isUser&&m.id<=readMax;const ck=document.createElement('span');ck.className='ck'+(rd?' rd':'');ck.textContent=rd?'✓✓':'✓';tm.append(ck)}
+  b.append(tm);
   b.onclick=ev=>showMenu(ev,m);
   return b;
 }
@@ -321,9 +338,11 @@ async function loadMsgs(first){
   if(busy){again=true;return}
   busy=true;const d=cur;
   try{
-    const ms=await client.getMessages(d.entity,{limit:50});
+    const [ms]=await Promise.all([client.getMessages(d.entity,{limit:50}),refreshRead()]);
     if(cur!==d) return;
-    const sig=ms.map(m=>m.id+':'+(m.editDate||0)).join(',')+'|'+rcache.size;
+    const inc=ms.find(m=>!m.out);
+    if(inc&&inc.id>lastMarked&&!document.hidden&&isOn('chat')){lastMarked=inc.id;Promise.resolve(client.markAsRead(d.entity)).catch(()=>{})}
+    const sig=ms.map(m=>m.id+':'+(m.editDate||0)).join(',')+'|'+rcache.size+'|'+readMax;
     if(!first&&sig===lastSig) return;
     lastSig=sig;
     const box=$('ms');
@@ -349,13 +368,101 @@ async function loadMsgs(first){
   finally{busy=false;if(again){again=false;loadMsgs()}}
 }
 async function openChat(d){
-  cur=d;lastSig='';setReply(null);hideSp();
+  cur=d;lastSig='';readMax=0;lastMarked=0;setReply(null);hideSp();
   $('ct').textContent=d.title||'';$('cs').textContent='';
   const av=$('ca');av.style.backgroundImage='';av.textContent=(d.title||'?')[0].toUpperCase();setAvatar(av,d.entity,String(d.id));
   show('chat');$('ms').textContent='Загрузка…';
   refreshStatus();await loadMsgs(true);
 }
 $('b-back').onclick=()=>{cur=null;hideSp();loadChats()};
+
+/* ---------- индикаторы прочтения ---------- */
+async function refreshRead(){
+  if(!cur||!cur.isUser) return;
+  try{
+    const r=await client.invoke(new LIB.Api.messages.GetPeerDialogs({peers:[new LIB.Api.InputDialogPeer({peer:cur.inputEntity})]}));
+    const dd=r.dialogs&&r.dialogs[0]; if(dd) readMax=dd.readOutboxMaxId||0;
+  }catch{}
+}
+
+/* ---------- просмотр медиа на весь экран ---------- */
+let vurl=null,vname='file';
+function openViewer(){$('vw').classList.add('on');$('vc').textContent=''}
+function closeViewer(){$('vw').classList.remove('on');$('vc').textContent='';vurl=null}
+function saveUrl(url,name){const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove()}
+$('vx').onclick=closeViewer;
+$('vd').onclick=()=>{if(vurl)saveUrl(vurl,vname)};
+function viewImg(u,name){
+  const im=document.createElement('img');im.className='vimg';im.src=u;im.onclick=()=>im.classList.toggle('zoom');
+  $('vc').append(im);vurl=u;vname=name;
+}
+async function openPhoto(m,key){
+  openViewer();const vc=$('vc');
+  const thumb=mcache.get(key),fk='f'+key;
+  const im=document.createElement('img');im.className='vimg';if(thumb)im.src=thumb;im.onclick=()=>im.classList.toggle('zoom');vc.append(im);
+  vurl=thumb||null;vname='photo.jpg';
+  let url=mcache.get(fk);
+  if(!url){
+    const l=document.createElement('div');l.className='vl';l.textContent='Загрузка…';vc.append(l);
+    try{url=toURL(await client.downloadMedia(m,{}),'image/jpeg');mcache.set(fk,url)}catch{}
+    l.remove();
+  }
+  if(url&&$('vw').classList.contains('on')){im.src=url;vurl=url}
+}
+async function openVideo(m){
+  openViewer();const vc=$('vc');
+  const l=document.createElement('div');l.className='vl';l.textContent='Загрузка видео…';vc.append(l);
+  try{
+    const buf=await client.downloadMedia(m,{});
+    if(!$('vw').classList.contains('on')) return;
+    const url=URL.createObjectURL(new Blob([buf],{type:(m.document&&m.document.mimeType)||'video/mp4'}));
+    l.remove();const v=document.createElement('video');v.src=url;v.controls=true;v.autoplay=true;v.playsInline=true;vc.append(v);vurl=url;vname='video.mp4';
+  }catch(e){l.textContent='Ошибка: '+(e.message||e)}
+}
+
+/* ---------- профиль ---------- */
+async function openProfile(){
+  if(!cur) return; const d=cur,e=d.entity||{};
+  show('prof');const pc=$('pc');pc.textContent='';
+  const av=document.createElement('div');av.className='av big';av.textContent=(d.title||'?')[0].toUpperCase();pc.append(av);
+  const h=document.createElement('div');h.className='pn';h.textContent=d.title||'';pc.append(h);
+  const st=document.createElement('div');st.className='sub';st.style.textAlign='center';st.textContent=$('cs').textContent;pc.append(st);
+  const box=document.createElement('div');box.className='pi';pc.append(box);
+  const add=(l,v)=>{if(!v)return;const r=document.createElement('div');r.className='pr';r.innerHTML='<small></small><div></div>';r.firstChild.textContent=l;r.lastChild.textContent=v;r.onclick=()=>{try{navigator.clipboard.writeText(v)}catch{}};box.append(r)};
+  const key='A'+String(d.id);
+  (async()=>{
+    let u=mcache.get(key);
+    if(u===undefined){try{u=toURL(await client.downloadProfilePhoto(e,{isBig:true}),'image/jpeg')}catch{u=null}mcache.set(key,u)}
+    if(u){paint(av,u);av.onclick=()=>{openViewer();viewImg(u,'avatar.jpg')}}
+  })();
+  try{
+    const A=LIB.Api;
+    if(d.isUser){
+      const r=await client.invoke(new A.users.GetFullUser({id:d.inputEntity}));
+      const u=(r.users&&r.users[0])||e;
+      h.textContent=[u.firstName,u.lastName].filter(Boolean).join(' ')||d.title||'';
+      st.textContent=statusText(u);
+      add('Телефон',u.phone?'+'+u.phone:'');
+      add('Имя пользователя',u.username?'@'+u.username:'');
+      add('О себе',r.fullUser&&r.fullUser.about);
+    }else if(e.className==='Channel'){
+      const r=await client.invoke(new A.channels.GetFullChannel({channel:d.inputEntity}));
+      const f=r.fullChat||{};
+      st.textContent=(f.participantsCount?f.participantsCount+' участн.':(d.isGroup?'группа':'канал'));
+      add('Имя пользователя',e.username?'@'+e.username:'');
+      add('Описание',f.about);
+    }else{
+      const r=await client.invoke(new A.messages.GetFullChat({chatId:e.id}));
+      const f=r.fullChat||{};
+      const n=f.participants&&f.participants.participants&&f.participants.participants.length;
+      st.textContent=n?n+' участн.':'группа';
+      add('Описание',f.about);
+    }
+  }catch(err){add('Ошибка',err.message||String(err))}
+}
+$('ca').onclick=openProfile;
+document.querySelector('#chat .tt').onclick=openProfile;
+$('pb').onclick=()=>{show('chat');lastSig='';loadMsgs()};
 
 /* ---------- ответ и меню сообщения ---------- */
 function setReply(m){
