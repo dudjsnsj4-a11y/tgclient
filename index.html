@@ -130,6 +130,24 @@ input[type=range]::-moz-range-thumb{width:5px;height:44px;border:0;border-radius
 .vctl .pp{width:56px;border-radius:50%;background:#B9C3FF;color:#0B1A6B}.vctl .pp.on{border-radius:18px}
 .vctl canvas{flex:1;height:36px;min-width:0;touch-action:none}
 .vctl .tm{font-size:12px;font-variant-numeric:tabular-nums;min-width:74px;text-align:center;opacity:.85}
+
+/* загрузка медиа — M3 Expressive */
+.mw{position:relative;width:fit-content;max-width:100%;margin-bottom:4px}
+.mw img.ph{margin-bottom:0;transition:filter .3s}.mw:not(.ok) img.ph{filter:brightness(.82)}
+.mw .du{position:absolute;left:8px;top:8px;background:#0008;color:#fff;border-radius:10px;padding:2px 8px;font-size:12px}
+.mw.ok .du{display:none}
+.dlb{position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;border:0;padding:0;border-radius:22px;background:#000000A6;color:#fff;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);cursor:pointer;z-index:2;transition:border-radius .35s cubic-bezier(.34,1.56,.64,1),transform .2s cubic-bezier(.34,1.56,.64,1)}
+.dlb:active{transform:scale(.9)}
+.dlb.ld{border-radius:50%}
+.dlb .rg{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .2s}.dlb.ld .rg{opacity:1}
+.dlb .dn,.dlb .sp{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .2s}
+.dlb.ld .dn{opacity:0;transform:scale(.3) rotate(-90deg)}
+.dlb:not(.ld) .sp{opacity:0;transform:scale(.3) rotate(90deg)}
+.dlb.er .dn{color:#FFB4AB}
+.mw.ok>.dlb,.vp.ok>.dlb{animation:dlout .28s forwards;pointer-events:none}
+.vp:not(.ok)>.pl{display:none}.vp.ok>.pl{animation:dlin .35s cubic-bezier(.34,1.56,.64,1)}
+@keyframes dlout{to{opacity:0;transform:scale(.3);visibility:hidden}}
+@keyframes dlin{from{opacity:0;transform:scale(.3)}}
 </style></head><body>
 
 <section class="scr" id="keys"><div class="pad">
@@ -337,6 +355,62 @@ async function refreshStatus(){
 const rcache=new Map();
 const senderName=m=>{try{const s=m.sender;return s?(s.firstName||s.title||''):''}catch{return ''}};
 function snip(m){return (labelOf(m)||'').replace(/\s+/g,' ').slice(0,80)}
+/* ---------- загрузка медиа по нажатию (M3 Expressive) ---------- */
+const dls=new Map();let dlraf=0;
+const DLI='<svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg>',
+      STI='<svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><rect x="7.5" y="7.5" width="9" height="9" rx="2.5"/></svg>';
+function photoBytes(p){let mx=0;for(const s of ((p&&p.sizes)||[])){const v=s.size!=null?num(s.size):(s.sizes&&s.sizes.length?num(s.sizes[s.sizes.length-1]):0);if(v>mx)mx=v}return mx}
+function wavy(a0,a1,A,ph){
+  const R=24,N=10,n=Math.max(6,Math.ceil((a1-a0)*R/1.2));let d='';
+  for(let i=0;i<=n;i++){const a=a0+(a1-a0)*i/n,r=R+A*Math.sin(N*a-ph);d+=(i?'L':'M')+(32+r*Math.cos(a)).toFixed(2)+' '+(32+r*Math.sin(a)).toFixed(2)}
+  return d;
+}
+function dlTick(t){
+  const els=document.querySelectorAll('.dlb.ld');
+  if(!els.length&&!dls.size){dlraf=0;return}
+  const T=Math.PI*2,gap=.34;
+  els.forEach(el=>{
+    const st=dls.get(el.dataset.dk);if(!st)return;
+    const ind=st.p<0;
+    st.sp+=((ind?0:st.p)-st.sp)*.14;
+    let a0,len;
+    if(ind){a0=-Math.PI/2+t/520;len=T*.3}
+    else{a0=-Math.PI/2;len=Math.max(.05*T,st.sp*T)}
+    const ac=el.querySelector('.ac'),tr=el.querySelector('.tr'),ph=t/160;
+    ac.setAttribute('d',wavy(a0,a0+len,2.4,ph));
+    const t0=a0+len+gap,t1=a0+T-gap;
+    tr.setAttribute('d',t1>t0?wavy(t0,t1,0,0):'');
+  });
+  dlraf=requestAnimationFrame(dlTick);
+}
+const dlKick=()=>{if(!dlraf)dlraf=requestAnimationFrame(dlTick)};
+function syncDl(dk,er){document.querySelectorAll('.dlb').forEach(b=>{if(b.dataset.dk!==dk)return;b.classList.toggle('ld',dls.has(dk));b.classList.toggle('er',!!er)})}
+function doneDl(dk,url){
+  document.querySelectorAll('[data-wk]').forEach(w=>{if(w.dataset.wk===dk)w.classList.add('ok')});
+  document.querySelectorAll('img.ph').forEach(i=>{if('f'+i.dataset.k===dk)i.src=url});
+  syncDl(dk);
+}
+function startDl(dk,m,mime){
+  if(dls.has(dk)) return;
+  const st={p:-1,sp:0};dls.set(dk,st);
+  const total=m.document?num(m.document.size):photoBytes(m.photo);
+  const cb=(a,t)=>{const d=num(a),tt=num(t)||total;if(tt>0&&d>=0)st.p=Math.min(1,d/tt)};
+  st.cb=cb;syncDl(dk);dlKick();
+  client.downloadMedia(m,{progressCallback:cb}).then(buf=>{
+    if(dls.get(dk)!==st) return;
+    const url=toURL(buf,mime);if(!url) throw new Error('empty');
+    mcache.set(dk,url);dls.delete(dk);doneDl(dk,url);
+  }).catch(()=>{if(dls.get(dk)!==st) return;dls.delete(dk);syncDl(dk,true)});
+}
+function cancelDl(dk){const st=dls.get(dk);if(!st) return;st.cb.isCanceled=true;dls.delete(dk);syncDl(dk)}
+function mkDlBtn(dk,m,mime){
+  const b=document.createElement('button');b.className='dlb'+(dls.has(dk)?' ld':'');b.dataset.dk=dk;b.setAttribute('aria-label','Скачать');
+  b.innerHTML='<svg class="rg" viewBox="0 0 64 64"><path class="tr" fill="none" stroke="#FFFFFF40" stroke-width="4" stroke-linecap="round"/><path class="ac" fill="none" stroke="#B9C3FF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="dn">'+DLI+'</span><span class="sp">'+STI+'</span>';
+  b.onclick=ev=>{ev.stopPropagation();if(dls.has(dk))cancelDl(dk);else startDl(dk,m,mime)};
+  if(dls.has(dk)) dlKick();
+  return b;
+}
+
 function buildMsg(m,d,byId,need){
   const k=kind(m);
   const b=document.createElement('div');
@@ -359,9 +433,13 @@ function buildMsg(m,d,byId,need){
     if(mcache.get(key)) im.src=mcache.get(key); else docThumb(m.document).then(u=>fillImgs(key,u));
     b.append(im);
   }else if(k==='photo'){
-    const im=document.createElement('img');im.className='ph';const key='p'+d.id+':'+m.id;im.dataset.k=key;im.onclick=ev=>{ev.stopPropagation();openPhoto(m,key)};
-    if(mcache.get(key)) im.src=mcache.get(key); else photoThumb(m,key).then(u=>fillImgs(key,u));
-    b.append(im);
+    const im=document.createElement('img');im.className='ph';const key='p'+d.id+':'+m.id,fk='f'+key;im.dataset.k=key;
+    const w=document.createElement('div');w.className='mw'+(mcache.get(fk)?' ok':'');w.dataset.wk=fk;
+    im.onclick=ev=>{if(mcache.get(fk)){ev.stopPropagation();openPhoto(m,key)}};
+    if(mcache.get(fk)) im.src=mcache.get(fk); else if(mcache.get(key)) im.src=mcache.get(key); else photoThumb(m,key).then(u=>{if(!mcache.get(fk))fillImgs(key,u)});
+    w.append(im,mkDlBtn(fk,m,'image/jpeg'));
+    const pb=photoBytes(m.photo);if(pb){const du=document.createElement('span');du.className='du';du.textContent=fmtSize(pb);w.append(du)}
+    b.append(w);
   }else if(k==='video'||k==='vnote'){
     const vi=((m.document&&m.document.attributes)||[]).find(a=>a.className==='DocumentAttributeVideo')||{};
     const vp=document.createElement('div');vp.className='vp'+(k==='vnote'?' rnd':'');
@@ -373,7 +451,9 @@ function buildMsg(m,d,byId,need){
     pl.innerHTML='<svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
     const dd=Math.round(vi.duration||0),du=document.createElement('span');du.className='du';
     du.textContent=[dd?Math.floor(dd/60)+':'+pad(dd%60):'',fmtSize(num(m.document.size))].filter(Boolean).join(' · ');
-    vp.append(im,pl,du);vp.onclick=ev=>{ev.stopPropagation();openVideo(m)};b.append(vp);
+    const dk='v'+m.document.id;vp.dataset.wk=dk;if(mcache.get(dk))vp.classList.add('ok');
+    vp.append(im,pl,mkDlBtn(dk,m,(m.document&&m.document.mimeType)||'video/mp4'),du);
+    vp.onclick=ev=>{if(mcache.get(dk)){ev.stopPropagation();openVideo(m)}};b.append(vp);
   }else if(k!=='text'){
     const f=document.createElement('div');f.className='fl';
     const at=(m.document&&m.document.attributes)||[];
@@ -474,33 +554,17 @@ function viewImg(u,name){
   const im=document.createElement('img');im.className='vimg';im.src=u;im.onclick=()=>im.classList.toggle('zoom');
   $('vc').append(im);vurl=u;vname=name;
 }
-async function openPhoto(m,key){
-  openViewer();const vc=$('vc');
-  const thumb=mcache.get(key),fk='f'+key;
-  const im=document.createElement('img');im.className='vimg';if(thumb)im.src=thumb;im.onclick=()=>im.classList.toggle('zoom');vc.append(im);
-  vurl=thumb||null;vname='photo.jpg';
-  let url=mcache.get(fk);
-  if(!url){
-    const l=document.createElement('div');l.className='vl';l.textContent='Загрузка…';vc.append(l);
-    try{url=toURL(await client.downloadMedia(m,{}),'image/jpeg');mcache.set(fk,url)}catch{}
-    l.remove();
-  }
-  if(url&&$('vw').classList.contains('on')){im.src=url;vurl=url}
+function openPhoto(m,key){
+  const url=mcache.get('f'+key);if(!url) return;
+  openViewer();viewImg(url,'photo.jpg');
 }
 let vraf=0;
 const stopVid=()=>{cancelAnimationFrame(vraf);vraf=0};
 async function openVideo(m){
+  const url=mcache.get('v'+m.document.id);if(!url) return;
   openViewer();const vc=$('vc');
-  const l=document.createElement('div');l.className='vl';l.textContent='Загрузка видео…';vc.append(l);
-  const total=Number(String(m.document&&m.document.size))||0;
+  const l=document.createElement('div');l.className='vl';
   try{
-    const buf=await client.downloadMedia(m,{progressCallback:(a,t)=>{
-      const d=Number(String(a)),tt=Number(String(t))||total;
-      if(d>=0&&tt>0&&l.isConnected)l.textContent='Загрузка видео… '+Math.min(100,Math.round(d/tt*100))+'%';
-    }});
-    if(!$('vw').classList.contains('on')) return;
-    const url=URL.createObjectURL(new Blob([buf],{type:(m.document&&m.document.mimeType)||'video/mp4'}));
-    l.remove();
     const note=kind(m)==='vnote';
     const w=document.createElement('div');w.className='pw';
     const v=document.createElement('video');v.src=url;v.autoplay=true;v.playsInline=true;if(note)v.className='rnd';
@@ -545,7 +609,7 @@ async function openVideo(m){
       vraf=requestAnimationFrame(draw);
     };
     vraf=requestAnimationFrame(draw);
-  }catch(e){l.textContent='Ошибка: '+(e.message||e)}
+  }catch(e){l.textContent='Ошибка: '+(e.message||e);vc.append(l)}
 }
 
 /* ---------- профиль ---------- */
