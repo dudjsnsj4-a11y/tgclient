@@ -64,7 +64,10 @@ img.sk{display:block;width:150px;height:150px;object-fit:contain}
 .sgrid>div:active{background:#C9CFFF}.sgrid img{width:100%;height:100%;object-fit:contain}
 .mn{position:fixed;display:none;background:#fff;border-radius:18px;box-shadow:0 6px 20px #0004;overflow:hidden;z-index:9}.mn.on{display:block}
 .mn button{display:block;width:170px;text-align:left;border:0;background:none;padding:14px 18px;font-size:15px;font-weight:600}.mn button:active{background:#E1E3FF}
-.ck{margin-left:3px;letter-spacing:-2px}.ck.rd{color:#7FFFD4;font-weight:800}
+.ck{display:inline-flex;align-items:center;vertical-align:middle;margin-left:6px;padding:2px 7px;border-radius:10px;background:#FFFFFF26;line-height:0}
+.ck.rd{background:#7FFFD433;color:#A6FFE4}
+.ck svg{display:block}
+.ckl{display:inline-flex;vertical-align:middle;margin-right:6px;color:#8A8C99;line-height:0}.ckl.rd{color:#3B4FC4}
 .vw{position:fixed;inset:0;background:#000000F2;display:none;flex-direction:column;z-index:20}.vw.on{display:flex}
 .vb{display:flex;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top)) 16px 8px}
 .vb button{width:48px;height:48px;border:0;border-radius:50%;background:#FFFFFF26;color:#fff;font-size:20px}
@@ -76,6 +79,14 @@ img.sk{display:block;width:150px;height:150px;object-fit:contain}
 .pi{width:100%;display:flex;flex-direction:column;gap:8px;margin-top:8px}
 .pr{background:#E9EAF4;border-radius:20px;padding:12px 18px}.pr small{display:block;color:#3B4FC4;font-weight:600;font-size:12px}.pr div{font-size:16px;word-break:break-word;white-space:pre-wrap}
 #ca,#chat .tt{cursor:pointer}
+.dock{background:#ECEDF8;border-radius:28px 28px 0 0;padding-bottom:env(safe-area-inset-bottom)}
+.dock .rp{margin:12px 12px 0;padding:8px 8px 8px 14px;border-radius:20px;background:#E1E3FF}
+.dock .rp button{background:#F7F8FF}
+.dock .bar{padding:12px;gap:10px;background:none}
+.dock .bar input{background:#F7F8FF;border-radius:26px;height:52px;padding:0 20px}
+.dock .bar .btn{width:52px;height:52px;border-radius:18px}
+.dock .sp{background:none;border-radius:0}
+.dock .sgrid{padding-bottom:10px}
 </style></head><body>
 
 <section class="scr" id="keys"><div class="pad">
@@ -105,12 +116,12 @@ img.sk{display:block;width:150px;height:150px;object-fit:contain}
 
 <section class="scr" id="chat"><div class="top"><button id="b-back">←</button><div class="av sm" id="ca"></div><div class="tt"><b id="ct"></b><span class="sub" id="cs"></span></div></div>
 <div class="msgs" id="ms"></div>
-<div class="rp" id="rp"><div class="rq"><b id="rn"></b><span id="rtx"></span></div><button id="rx">✕</button></div>
+<div class="dock"><div class="rp" id="rp"><div class="rq"><b id="rn"></b><span id="rtx"></span></div><button id="rx">✕</button></div>
 <div class="bar" id="bar"><input id="tx" placeholder="Сообщение"><button class="btn" id="b-send">➤</button>
 <div class="lpop" id="lp"><button id="p-file" aria-label="Файл"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.5l-8.5 8.5a5 5 0 01-7-7L14 5.5a3.5 3.5 0 015 5L10.5 19a2 2 0 01-3-3L15 8.5"/></svg></button>
 <button id="p-stk" aria-label="Стикеры"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8 14c1 1.5 2.5 2.2 4 2.2s3-.7 4-2.2M9 9.5h.01M15 9.5h.01"/></svg></button></div></div>
 <div class="sp" id="sp"><div class="stabs" id="st"></div><div class="sgrid" id="sg"></div></div>
-<input type="file" id="fi" multiple style="display:none"></section>
+</div><input type="file" id="fi" multiple style="display:none"></section>
 <section class="scr" id="prof"><div class="top"><button id="pb">←</button><b>Профиль</b></div><div class="pad" id="pc" style="align-items:center"></div></section>
 <div class="vw" id="vw"><div class="vb"><button id="vx" aria-label="Закрыть">✕</button><button id="vd" aria-label="Скачать">⬇</button></div><div class="vc" id="vc"></div></div>
 <div class="mn" id="mn"><button id="m-reply">Ответить</button><button id="m-copy">Копировать</button></div>
@@ -184,6 +195,8 @@ function statusText(u){
   }
 }
 const isOn=id=>$(id).classList.contains('on');
+const CK1='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-label="Отправлено"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const CK2='<svg width="22" height="16" viewBox="0 0 30 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-label="Прочитано"><path d="M3 12.5l4.5 4.5L17 7.5"/><path d="M12 15.5l1.5 1.5L26 7.5"/></svg>';
 const fmtSize=n=>n>1048576?(n/1048576).toFixed(1)+' МБ':Math.max(1,Math.round(n/1024))+' КБ';
 const num=x=>Number(x&&x.toString?x.toString():x)||0;
 
@@ -254,7 +267,8 @@ async function loadChats(quiet){
       const av=r.querySelector('.av');av.textContent=t[0].toUpperCase();setAvatar(av,d.entity,String(d.id));
       r.querySelector('b').textContent=t;
       {const lm=d.message,ro=(d.dialog&&d.dialog.readOutboxMaxId)||0,bc=d.isChannel&&!d.isGroup;
-      r.querySelector('span').textContent=(lm&&lm.out&&!bc?((d.isUser&&lm.id<=ro)?'✓✓ ':'✓ '):'')+labelOf(lm)}
+      const sp=r.querySelector('span');sp.textContent=labelOf(lm);
+      if(lm&&lm.out&&!bc){const rd=d.isUser&&lm.id<=ro;const c=document.createElement('i');c.className='ckl'+(rd?' rd':'');c.innerHTML=rd?CK2:CK1;sp.prepend(c)}}
       r.querySelector('.tm').textContent=d.date?listTime(d.date):'';
       if(d.unreadCount){const b=document.createElement('div');b.className='bd';b.textContent=d.unreadCount;r.querySelector('.rt').append(b)}
       r.onclick=()=>openChat(d);frag.append(r);
@@ -328,7 +342,7 @@ function buildMsg(m,d,byId,need){
   if(m.message&&k!=='sticker'){const tx=document.createElement('div');tx.textContent=m.message;b.append(tx)}
   else if(k==='text'&&!m.message){const tx=document.createElement('div');tx.textContent='[не поддерживается]';b.append(tx)}
   const tm=document.createElement('div');tm.className='t';tm.textContent=hm(m.date)+(m.editDate?' · изм.':'');
-  if(m.out&&!(d.isChannel&&!d.isGroup)){const rd=d.isUser&&m.id<=readMax;const ck=document.createElement('span');ck.className='ck'+(rd?' rd':'');ck.textContent=rd?'✓✓':'✓';tm.append(ck)}
+  if(m.out&&!(d.isChannel&&!d.isGroup)){const rd=d.isUser&&m.id<=readMax;const ck=document.createElement('span');ck.className='ck'+(rd?' rd':'');ck.innerHTML=rd?CK2:CK1;tm.append(ck)}
   b.append(tm);
   b.onclick=ev=>showMenu(ev,m);
   return b;
