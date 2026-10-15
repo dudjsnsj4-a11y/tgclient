@@ -95,9 +95,16 @@ img.sk{display:block;width:150px;height:150px;object-fit:contain}
 textarea{background:#E9EAF4;border:0;border-radius:20px;padding:16px 18px;font-size:17px;width:100%;outline:0;font-family:inherit;resize:none;min-height:96px}
 textarea:focus{box-shadow:0 0 0 2px #3B4FC4}
 .ver{margin:28px 0 12px;color:#8A8C99;font-size:14px;text-align:center}
-body{font-size:17px}.b{font-size:18px;line-height:1.35}.b .t{font-size:12px}.q{font-size:14px}
+body{font-size:17px}.b{font-size:var(--fs,18px);font-family:var(--ff,inherit);line-height:1.35}.b .t{font-size:calc(var(--fs,18px) - 4px);margin-top:3px}.q{font-size:14px}
 .m b{font-size:17px}.m span{font-size:15px}.sub{font-size:14px}.pr div{font-size:17px}
 .dock .bar input{font-size:17px}.btn{font-size:18px}
+.stc{background:#E9EAF4;border-radius:20px;padding:12px 18px;width:100%;display:flex;flex-direction:column;gap:12px}
+.stc small{color:#3B4FC4;font-weight:600;font-size:12px}
+.aab{padding:0 14px!important;font-weight:800!important;font-size:16px!important}
+.aap{position:fixed;top:72px;right:12px;left:12px;max-width:360px;margin-left:auto;background:#fff;border-radius:20px;box-shadow:0 6px 20px #0004;padding:14px 16px;z-index:9;display:none;flex-direction:column;gap:10px}.aap.on{display:flex}
+.aap .fr button{border:0;background:#E1E3FF;border-radius:50%;width:36px;height:36px;font-weight:800;color:#27379A;flex:none}
+.fr{display:flex;align-items:center;gap:12px}.fr input{flex:1;accent-color:#3B4FC4;min-width:0}.fr span{font-weight:600;min-width:48px;text-align:right}
+.fchips{display:flex;gap:8px;flex-wrap:wrap}.fchips span{padding:9px 14px;border-radius:14px;background:#F7F8FF;font-size:14px;font-weight:600}.fchips span.on{background:#3B4FC4;color:#fff}
 </style></head><body>
 
 <section class="scr" id="keys"><div class="pad">
@@ -125,7 +132,8 @@ body{font-size:17px}.b{font-size:18px;line-height:1.35}.b .t{font-size:12px}.q{f
 <section class="scr" id="chats"><div class="top"><div class="av sm" id="meav"></div><b>Чаты</b><button id="b-ref">Обновить</button></div>
 <div class="list" id="dl"></div></section>
 
-<section class="scr" id="chat"><div class="top"><button id="b-back">←</button><div class="av sm" id="ca"></div><div class="tt"><b id="ct"></b><span class="sub" id="cs"></span></div></div>
+<section class="scr" id="chat"><div class="top"><button id="b-back">←</button><div class="av sm" id="ca"></div><div class="tt"><b id="ct"></b><span class="sub" id="cs"></span></div><button class="aab" id="b-aa" aria-label="Размер шрифта">Aa</button></div>
+<div class="aap" id="aap"><small style="color:#3B4FC4;font-weight:600">Размер шрифта в чате</small><div class="fr"><button id="aa-m">A−</button><input type="range" id="aa-r" min="12" max="32" step="1"><button id="aa-p">A+</button><span id="aa-v"></span></div></div>
 <div class="msgs" id="ms"></div>
 <div class="dock"><div class="rp" id="rp"><div class="rq"><b id="rn"></b><span id="rtx"></span></div><button id="rx">✕</button></div>
 <div class="bar" id="bar"><input id="tx" placeholder="Сообщение"><button class="btn" id="b-send">➤</button>
@@ -209,8 +217,8 @@ function statusText(u){
   }
 }
 const isOn=id=>$(id).classList.contains('on');
-const CK1='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-label="Отправлено"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
-const CK2='<svg width="22" height="16" viewBox="0 0 30 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-label="Прочитано"><path d="M3 12.5l4.5 4.5L17 7.5"/><path d="M12 15.5l1.5 1.5L26 7.5"/></svg>';
+const CK1='<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-label="Отправлено"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const CK2='<svg width="26" height="19" viewBox="0 0 30 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-label="Прочитано"><path d="M3 12.5l4.5 4.5L17 7.5"/><path d="M12 15.5l1.5 1.5L26 7.5"/></svg>';
 const fmtSize=n=>n>1048576?(n/1048576).toFixed(1)+' МБ':Math.max(1,Math.round(n/1024))+' КБ';
 const num=x=>Number(x&&x.toString?x.toString():x)||0;
 
@@ -512,6 +520,19 @@ async function react(m,emo){
   b.onclick=()=>{$('mn').classList.remove('on');if(menuMsg)react(menuMsg,e)};$('rr').append(b);
 });
 
+/* ---------- оформление ---------- */
+const FONTS=[['Системный',''],['Серифный','Georgia,"Times New Roman",serif'],['Моно','ui-monospace,Menlo,Consolas,monospace'],['Рукописный','"Comic Sans MS","Segoe Print",cursive']];
+const getFs=()=>+ls.sg_fs||18;
+function applyFont(){const r=document.documentElement.style;r.setProperty('--fs',getFs()+'px');r.setProperty('--ff',ls.sg_ff||'inherit')}
+applyFont();
+const FS_MIN=12,FS_MAX=32;
+function setFs(v){v=Math.max(FS_MIN,Math.min(FS_MAX,Math.round(+v)||18));ls.sg_fs=v;applyFont();$('aa-r').value=v;$('aa-v').textContent=v+' px'}
+$('aa-r').oninput=e=>setFs(e.target.value);
+$('aa-m').onclick=()=>setFs(getFs()-1);
+$('aa-p').onclick=()=>setFs(getFs()+1);
+$('b-aa').onclick=e=>{e.stopPropagation();const p=$('aap');if(!p.classList.contains('on'))setFs(getFs());p.classList.toggle('on')};
+document.addEventListener('click',e=>{if(!e.target.closest('#aap'))$('aap').classList.remove('on')});
+
 /* ---------- мой профиль ---------- */
 let ME=null;
 async function initMe(){
@@ -539,6 +560,17 @@ async function openMe(edit){
     const box=document.createElement('div');box.className='pi';mc.append(box);
     const add=(l,v)=>{if(!v)return;const r=document.createElement('div');r.className='pr';r.innerHTML='<small></small><div></div>';r.firstChild.textContent=l;r.lastChild.textContent=v;box.append(r)};
     add('Телефон',u.phone?'+'+u.phone:'');add('Имя пользователя',u.username?'@'+u.username:'');add('О себе',about);
+    const st=document.createElement('div');st.className='stc';
+    st.innerHTML='<small>Оформление сообщений</small><div class="fr"><input type="range" min="12" max="32" step="1"><span></span></div><div class="fchips"></div>';
+    const rg=st.querySelector('input'),vl=st.querySelector('.fr span'),fc=st.querySelector('.fchips');
+    rg.value=getFs();vl.textContent=getFs()+' px';
+    rg.oninput=()=>{ls.sg_fs=rg.value;vl.textContent=rg.value+' px';applyFont()};
+    FONTS.forEach(([n,f])=>{const c=document.createElement('span');c.textContent=n;if((ls.sg_ff||'')===f)c.className='on';
+      c.onclick=()=>{ls.sg_ff=f;applyFont();[...fc.children].forEach(x=>x.classList.toggle('on',x===c))};fc.append(c)});
+    box.append(st);
+    const pv=document.createElement('div');pv.className='b me';pv.style.alignSelf='flex-end';
+    pv.innerHTML='<div>Так выглядит текст сообщения</div><div class="t">12:34<span class="ck rd">'+CK2+'</span></div>';
+    box.append(pv);
   }else{
     const sc=document.createElement('button');sc.className='btn t';sc.textContent='Сменить фото';
     sc.onclick=()=>$('mfi').click();mc.append(sc);
