@@ -4,35 +4,66 @@
 <meta name="theme-color" content="#ECEDF8"><link rel="manifest" href="manifest.json">
 <title>TG Client</title>
 <style>
-*{box-sizing:border-box}html,body{height:100%;margin:0}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{height:100%;margin:0}
 body{font-family:system-ui,sans-serif;background:#F7F8FF;color:#1B1B21}
 .scr{display:none;height:100%;flex-direction:column}.scr.on{display:flex}
 h1{font-size:36px;letter-spacing:-1px;margin:0}
 .pad{padding:32px 24px;display:flex;flex-direction:column;gap:16px;flex:1;overflow:auto}
 p{margin:0;color:#44464F;line-height:1.4}
-input{background:#E9EAF4;border:0;border-radius:20px;padding:16px 18px;font-size:16px;width:100%;outline:0}
+input[type=text],input[type=tel],input[type=password],input:not([type]),input[inputmode]{background:#E9EAF4;border:0;border-radius:20px;padding:16px 18px;font-size:16px;width:100%;outline:0}
 input:focus{box-shadow:0 0 0 2px #3B4FC4}
 .btn{height:60px;border:0;border-radius:30px;background:#3B4FC4;color:#fff;font-size:18px;font-weight:800;width:100%}
 .btn.t{background:#E1E3FF;color:#27379A}
 .err{background:#FFD9E2;color:#5C1A35;border-radius:20px;padding:12px 16px;display:none}
-.top{display:flex;align-items:center;gap:12px;padding:16px;background:#ECEDF8;border-radius:0 0 28px 28px}
-.top b{font-size:20px;flex:1}.top button{border:0;background:#E1E3FF;border-radius:20px;height:44px;padding:0 16px;font-weight:600}
+.top{display:flex;align-items:center;gap:12px;padding:12px 16px;background:#ECEDF8;border-radius:0 0 28px 28px}
+.top>b{font-size:20px;flex:1}.top button{border:0;background:#E1E3FF;border-radius:20px;height:44px;padding:0 16px;font-weight:600}
+.tt{flex:1;min-width:0}.tt b{display:block;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub{display:block;font-size:13px;color:#3B4FC4;font-weight:600;min-height:16px}
 .list{flex:1;overflow:auto;padding:8px}
 .row{display:flex;gap:14px;align-items:center;padding:10px 12px;border-radius:28px}
 .row:active{background:#E1E3FF}
-.av{width:52px;height:52px;border-radius:18px;background:#DCE4FF;color:#27379A;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;flex:none}
+.av{width:52px;height:52px;border-radius:18px;background:#DCE4FF;color:#27379A;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;flex:none;background-position:center;background-size:cover}
+.av.sm{width:44px;height:44px;border-radius:16px;font-size:18px}
 .m{flex:1;min-width:0}.m b{display:block}.m span{color:#5A5C66;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.rt{display:flex;flex-direction:column;align-items:flex-end;gap:6px;font-size:12px;color:#5A5C66}
 .bd{background:#3B4FC4;color:#fff;border-radius:12px;min-width:24px;height:24px;font-size:13px;display:flex;align-items:center;justify-content:center;padding:0 6px}
 .msgs{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:6px}
-.b{max-width:80%;padding:10px 16px;border-radius:24px 24px 24px 8px;background:#E9EAF4;white-space:pre-wrap;word-break:break-word}
+.b{max-width:82%;padding:10px 14px;border-radius:24px 24px 24px 8px;background:#E9EAF4;white-space:pre-wrap;word-break:break-word;align-self:flex-start}
 .b.me{align-self:flex-end;background:#3B4FC4;color:#fff;border-radius:24px 24px 8px 24px}
 .b .t{font-size:11px;opacity:.7;text-align:right;margin-top:2px}
+.b.stk{background:none;padding:0}.b.stk .t{background:#0005;color:#fff;border-radius:10px;padding:1px 8px;display:inline-block;float:right;margin-top:-22px;position:relative;margin-right:6px;opacity:1}
+.b.flash{animation:fl 1s}@keyframes fl{0%,60%{box-shadow:0 0 0 3px #FFB4C8}100%{box-shadow:none}}
+.sn{font-size:13px;font-weight:800;color:#3B4FC4;margin-bottom:2px}
+.b.me .sn{color:#DCE4FF}
+.q{border-left:3px solid #3B4FC4;background:#3B4FC41A;border-radius:6px 12px 12px 6px;padding:4px 10px;margin-bottom:6px;font-size:13px}
+.b.me .q{border-color:#fff;background:#FFFFFF2A}
+.q b{display:block;font-size:12px}.q span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.85;max-width:240px}
 .sep{align-self:center;background:#E9EAF4;border-radius:12px;padding:5px 14px;font-size:13px;font-weight:600;color:#44464F;margin:8px 0 4px}
-.top .sub{display:block;font-size:13px;color:#3B4FC4;font-weight:600;min-height:16px}
-.tt{flex:1;min-width:0}.tt b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rt{display:flex;flex-direction:column;align-items:flex-end;gap:6px;font-size:12px;color:#5A5C66}
-.bar{display:flex;gap:10px;padding:8px 16px calc(16px + env(safe-area-inset-bottom))}
-.bar input{border-radius:28px}.bar .btn{width:56px;height:56px;border-radius:20px;font-size:22px}
+img.ph{display:block;max-width:100%;max-height:340px;border-radius:16px;margin-bottom:4px;background:#D5D7E6;min-width:120px;min-height:80px}
+img.sk{display:block;width:150px;height:150px;object-fit:contain}
+.fl{display:flex;align-items:center;gap:10px;padding:2px 0;min-width:170px}
+.fl i{width:40px;height:40px;border-radius:14px;background:#3B4FC433;display:flex;align-items:center;justify-content:center;font-style:normal;flex:none}
+.fl small{display:block;opacity:.75}
+.rp{display:none;align-items:center;gap:10px;padding:8px 16px;background:#ECEDF8}.rp.on{display:flex}
+.rp .rq{flex:1;min-width:0;border-left:3px solid #3B4FC4;padding-left:10px;font-size:13px}
+.rp b{display:block;color:#3B4FC4}.rp span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rp button{border:0;background:#E1E3FF;border-radius:50%;width:36px;height:36px;font-size:16px}
+.bar{position:relative;display:flex;gap:10px;padding:8px 16px calc(16px + env(safe-area-inset-bottom))}
+.bar input{border-radius:28px}
+.bar .btn{width:56px;height:56px;border-radius:20px;font-size:22px;touch-action:manipulation;user-select:none;-webkit-user-select:none;flex:none}
+.lpop{position:absolute;right:16px;bottom:84px;display:none;flex-direction:column;gap:10px;z-index:5}.lpop.on{display:flex}
+.lpop button{width:52px;height:52px;border:0;border-radius:18px;background:#C9CFFF;color:#0B1A6B;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px #0003;animation:pop .18s ease-out}
+.lpop button:nth-child(2){animation-delay:.05s;animation-fill-mode:backwards}
+@keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+.sp{display:none;height:300px;background:#ECEDF8;border-radius:28px 28px 0 0;flex-direction:column}.sp.on{display:flex}
+.stabs{display:flex;gap:8px;overflow-x:auto;padding:12px 12px 6px;flex:none}
+.stabs .chip{padding:8px 14px;border-radius:14px;background:#E1E3FF;color:#27379A;font-size:13px;font-weight:600;white-space:nowrap;flex:none}
+.stabs .chip.on{background:#3B4FC4;color:#fff}
+.sgrid{flex:1;overflow:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:6px 10px calc(10px + env(safe-area-inset-bottom));align-content:start}
+.sgrid>div{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:14px;font-size:30px}
+.sgrid>div:active{background:#C9CFFF}.sgrid img{width:100%;height:100%;object-fit:contain}
+.mn{position:fixed;display:none;background:#fff;border-radius:18px;box-shadow:0 6px 20px #0004;overflow:hidden;z-index:9}.mn.on{display:block}
+.mn button{display:block;width:170px;text-align:left;border:0;background:none;padding:14px 18px;font-size:15px;font-weight:600}.mn button:active{background:#E1E3FF}
 </style></head><body>
 
 <section class="scr" id="keys"><div class="pad">
@@ -60,9 +91,15 @@ input:focus{box-shadow:0 0 0 2px #3B4FC4}
 <section class="scr" id="chats"><div class="top"><b>Чаты</b><button id="b-ref">Обновить</button><button id="b-out">Выйти</button></div>
 <div class="list" id="dl"></div></section>
 
-<section class="scr" id="chat"><div class="top"><button id="b-back">←</button><div class="tt"><b id="ct"></b><span class="sub" id="cs"></span></div></div>
+<section class="scr" id="chat"><div class="top"><button id="b-back">←</button><div class="av sm" id="ca"></div><div class="tt"><b id="ct"></b><span class="sub" id="cs"></span></div></div>
 <div class="msgs" id="ms"></div>
-<div class="bar"><input id="tx" placeholder="Сообщение"><button class="btn" id="b-send">➤</button></div></section>
+<div class="rp" id="rp"><div class="rq"><b id="rn"></b><span id="rtx"></span></div><button id="rx">✕</button></div>
+<div class="bar" id="bar"><input id="tx" placeholder="Сообщение"><button class="btn" id="b-send">➤</button>
+<div class="lpop" id="lp"><button id="p-file" aria-label="Файл"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.5l-8.5 8.5a5 5 0 01-7-7L14 5.5a3.5 3.5 0 015 5L10.5 19a2 2 0 01-3-3L15 8.5"/></svg></button>
+<button id="p-stk" aria-label="Стикеры"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8 14c1 1.5 2.5 2.2 4 2.2s3-.7 4-2.2M9 9.5h.01M15 9.5h.01"/></svg></button></div></div>
+<div class="sp" id="sp"><div class="stabs" id="st"></div><div class="sgrid" id="sg"></div></div>
+<input type="file" id="fi" multiple style="display:none"></section>
+<div class="mn" id="mn"><button id="m-reply">Ответить</button><button id="m-copy">Копировать</button></div>
 
 <script type="module">
 const $=i=>document.getElementById(i), ls=localStorage;
@@ -112,7 +149,7 @@ $('b-pw').onclick=()=>waiters.pw&&waiters.pw();
 $('b-out').onclick=async()=>{try{await client.invoke(new LIB.Api.auth.LogOut())}catch{} ls.removeItem('tg_session');location.reload()};
 $('b-ref').onclick=()=>loadChats();
 
-let cur, busy=false, kt=0, tick=0;
+let cur=null, busy=false, again=false, lastSig='', replyMsg=null, tick=0, kt=0;
 const pad=n=>String(n).padStart(2,'0');
 const hm=ts=>{const d=new Date(ts*1000);return pad(d.getHours())+':'+pad(d.getMinutes())};
 const dayDiff=ts=>{const d=new Date(ts*1000),n=new Date();return Math.round((new Date(n.getFullYear(),n.getMonth(),n.getDate())-new Date(d.getFullYear(),d.getMonth(),d.getDate()))/864e5)};
@@ -133,7 +170,64 @@ function statusText(u){
   }
 }
 const isOn=id=>$(id).classList.contains('on');
+const fmtSize=n=>n>1048576?(n/1048576).toFixed(1)+' МБ':Math.max(1,Math.round(n/1024))+' КБ';
+const num=x=>Number(x&&x.toString?x.toString():x)||0;
 
+/* ---------- очередь загрузок и кэш ---------- */
+const q=[]; let active=0;
+function pump(){while(active<3&&q.length){active++;q.shift()()}}
+function enqueue(fn){return new Promise(res=>{q.push(()=>{fn().then(res,()=>res(null)).finally(()=>{active--;pump()})});pump()})}
+const mcache=new Map();
+const toURL=(buf,type)=>(buf&&buf.length)?URL.createObjectURL(new Blob([buf],{type})):null;
+
+/* ---------- аватарки ---------- */
+function paint(el,u){el.style.backgroundImage='url('+u+')';el.textContent=''}
+async function setAvatar(el,entity,key){
+  key='a'+key;
+  if(mcache.has(key)){const u=mcache.get(key);if(u)paint(el,u);return}
+  const u=await enqueue(async()=>toURL(await client.downloadProfilePhoto(entity,{isBig:false}),'image/jpeg'));
+  mcache.set(key,u); if(u) paint(el,u);
+}
+
+/* ---------- виды сообщений ---------- */
+function kind(m){
+  if(!m||!m.media) return 'text';
+  if(m.photo) return 'photo';
+  const d=m.document; if(!d) return 'other';
+  const at=d.attributes||[], has=n=>at.find(a=>a.className===n);
+  if(has('DocumentAttributeSticker')) return 'sticker';
+  const au=has('DocumentAttributeAudio'); if(au) return au.voice?'voice':'audio';
+  const v=has('DocumentAttributeVideo'); if(v) return v.roundMessage?'vnote':'video';
+  return 'file';
+}
+const stickerAlt=d=>((d.attributes||[]).find(a=>a.className==='DocumentAttributeSticker')||{}).alt||'🎴';
+function labelOf(m){
+  if(!m) return '';
+  const k=kind(m), t=m.message||'';
+  const L={photo:'Фото',sticker:(m.document?stickerAlt(m.document):'')+' Стикер',voice:'Голосовое',audio:'Аудио',video:'Видео',vnote:'Видеосообщение',file:'Файл',other:'Вложение'};
+  return k==='text'?t:(t?L[k]+': '+t:L[k]);
+}
+async function docThumb(doc){
+  const key='d'+doc.id; if(mcache.has(key)) return mcache.get(key);
+  const st=doc.mimeType==='image/webp';
+  const u=await enqueue(async()=>{
+    const opt=st?{}:{thumb:(doc.thumbs&&doc.thumbs.length>1)?1:0};
+    return toURL(await client.downloadMedia(doc,opt),st?'image/webp':'image/jpeg');
+  });
+  mcache.set(key,u); return u;
+}
+async function photoThumb(m,key){
+  if(mcache.has(key)) return mcache.get(key);
+  const u=await enqueue(async()=>{
+    let buf; try{buf=await client.downloadMedia(m,{thumb:1})}catch{}
+    if(!buf||!buf.length) buf=await client.downloadMedia(m,{});
+    return toURL(buf,'image/jpeg');
+  });
+  mcache.set(key,u); return u;
+}
+function fillImgs(key,u){ if(u) document.querySelectorAll('img[data-k="'+key+'"]').forEach(i=>{i.src=u}) }
+
+/* ---------- чаты ---------- */
 async function loadChats(quiet){
   if(!quiet){show('chats');$('dl').textContent='Загрузка…';}
   try{
@@ -143,9 +237,9 @@ async function loadChats(quiet){
       const r=document.createElement('div');r.className='row';
       const t=d.title||'Без имени';
       r.innerHTML='<div class="av"></div><div class="m"><b></b><span></span></div><div class="rt"><div class="tm"></div></div>';
-      r.querySelector('.av').textContent=t[0].toUpperCase();
+      const av=r.querySelector('.av');av.textContent=t[0].toUpperCase();setAvatar(av,d.entity,String(d.id));
       r.querySelector('b').textContent=t;
-      r.querySelector('span').textContent=d.message?.message||'';
+      r.querySelector('span').textContent=labelOf(d.message);
       r.querySelector('.tm').textContent=d.date?listTime(d.date):'';
       if(d.unreadCount){const b=document.createElement('div');b.className='bd';b.textContent=d.unreadCount;r.querySelector('.rt').append(b)}
       r.onclick=()=>openChat(d);frag.append(r);
@@ -154,53 +248,208 @@ async function loadChats(quiet){
   }catch(e){if(!quiet)$('dl').textContent='Ошибка: '+(e.message||e)}
 }
 async function refreshStatus(){
-  if(!cur) return;
-  const d=cur;
+  if(!cur) return; const d=cur;
   if(d.isUser){
     let txt=statusText(d.entity);
     try{const r=await client.invoke(new LIB.Api.users.GetUsers({id:[d.inputEntity]}));txt=statusText(r[0])}catch{}
     if(cur===d) $('cs').textContent=txt;
-  }else if(d.isGroup){
-    const n=d.entity?.participantsCount; $('cs').textContent=n?n+' участн.':'группа';
-  }else $('cs').textContent='канал';
+  }else if(d.isGroup){const n=d.entity&&d.entity.participantsCount;$('cs').textContent=n?n+' участн.':'группа'}
+  else $('cs').textContent='канал';
+}
+
+/* ---------- сообщения ---------- */
+const rcache=new Map();
+const senderName=m=>{try{const s=m.sender;return s?(s.firstName||s.title||''):''}catch{return ''}};
+function snip(m){return (labelOf(m)||'').replace(/\s+/g,' ').slice(0,80)}
+function buildMsg(m,d,byId,need){
+  const k=kind(m);
+  const b=document.createElement('div');
+  b.className='b'+(m.out?' me':'')+(k==='sticker'?' stk':'');b.dataset.id=m.id;
+  if(d.isGroup&&!m.out){const n=senderName(m);if(n){const e=document.createElement('div');e.className='sn';e.textContent=n;b.append(e)}}
+  const rid=m.replyTo&&m.replyTo.replyToMsgId;
+  if(rid){
+    const key=String(d.id)+':'+rid;
+    const rm=byId.get(rid)||rcache.get(key);
+    const e=document.createElement('div');e.className='q';
+    const n=document.createElement('b'),t=document.createElement('span');
+    if(rm){n.textContent=rm.out?'Вы':(senderName(rm)||(d.isUser?d.title:'Сообщение'));t.textContent=snip(rm)||'…'}
+    else{n.textContent='Ответ';t.textContent='…';if(!rcache.has(key))need.add(rid)}
+    e.append(n,t);
+    e.onclick=ev=>{ev.stopPropagation();const el=$('ms').querySelector('[data-id="'+rid+'"]');if(el){el.scrollIntoView({block:'center'});el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash')}};
+    b.append(e);
+  }
+  if(k==='sticker'){
+    const im=document.createElement('img');im.className='sk';im.alt=stickerAlt(m.document);const key='d'+m.document.id;im.dataset.k=key;
+    if(mcache.get(key)) im.src=mcache.get(key); else docThumb(m.document).then(u=>fillImgs(key,u));
+    b.append(im);
+  }else if(k==='photo'){
+    const im=document.createElement('img');im.className='ph';const key='p'+d.id+':'+m.id;im.dataset.k=key;
+    if(mcache.get(key)) im.src=mcache.get(key); else photoThumb(m,key).then(u=>fillImgs(key,u));
+    b.append(im);
+  }else if(k!=='text'){
+    const f=document.createElement('div');f.className='fl';
+    const at=(m.document&&m.document.attributes)||[];
+    const fn=at.find(a=>a.className==='DocumentAttributeFilename'),au=at.find(a=>a.className==='DocumentAttributeAudio'),vi=at.find(a=>a.className==='DocumentAttributeVideo');
+    const ic={voice:'🎤',audio:'🎵',video:'🎬',vnote:'🎬',file:'📎',other:'📎'}[k];
+    const dur=(au&&au.duration)||(vi&&vi.duration)||0;
+    const nm=k==='voice'?'Голосовое':k==='vnote'?'Видеосообщение':k==='video'?'Видео':(fn?fn.fileName:'Файл');
+    const sz=m.document?fmtSize(num(m.document.size)):'';
+    f.innerHTML='<i></i><div><b></b><small></small></div>';
+    f.querySelector('i').textContent=ic;f.querySelector('b').textContent=nm;
+    f.querySelector('small').textContent=[dur?Math.floor(dur/60)+':'+pad(dur%60):'',sz].filter(Boolean).join(' · ');
+    f.onclick=async ev=>{
+      ev.stopPropagation();const sm=f.querySelector('small'),old=sm.textContent;sm.textContent='Загрузка…';
+      try{
+        const buf=await client.downloadMedia(m,{});
+        const mime=(m.document&&m.document.mimeType)||'application/octet-stream';
+        const url=URL.createObjectURL(new Blob([buf],{type:mime}));
+        if(k==='voice'||k==='audio'){new Audio(url).play()}
+        else{const a=document.createElement('a');a.href=url;a.download=fn?fn.fileName:'file';document.body.append(a);a.click();a.remove()}
+      }catch(e){sm.textContent='Ошибка загрузки';return}
+      sm.textContent=old;
+    };
+    b.append(f);
+  }
+  if(m.message&&k!=='sticker'){const tx=document.createElement('div');tx.textContent=m.message;b.append(tx)}
+  else if(k==='text'&&!m.message){const tx=document.createElement('div');tx.textContent='[не поддерживается]';b.append(tx)}
+  const tm=document.createElement('div');tm.className='t';tm.textContent=hm(m.date)+(m.editDate?' · изм.':'');b.append(tm);
+  b.onclick=ev=>showMenu(ev,m);
+  return b;
 }
 async function loadMsgs(first){
-  if(!cur||busy) return; busy=true; const d=cur;
+  if(!cur) return;
+  if(busy){again=true;return}
+  busy=true;const d=cur;
   try{
     const ms=await client.getMessages(d.entity,{limit:50});
     if(cur!==d) return;
+    const sig=ms.map(m=>m.id+':'+(m.editDate||0)).join(',')+'|'+rcache.size;
+    if(!first&&sig===lastSig) return;
+    lastSig=sig;
     const box=$('ms');
     const near=first||box.scrollHeight-box.scrollTop-box.clientHeight<150;
+    const arr=[...ms].reverse(), byId=new Map(arr.map(m=>[m.id,m])), need=new Set();
     const frag=document.createDocumentFragment();
     let last=-1;
-    for(const m of [...ms].reverse()){
+    for(const m of arr){
       const x=dayDiff(m.date);
       if(x!==last){last=x;const s=document.createElement('div');s.className='sep';s.textContent=dayLabel(m.date);frag.append(s)}
-      const b=document.createElement('div');b.className='b'+(m.out?' me':'');
-      const tx=document.createElement('div');tx.textContent=m.message||'[не текст]';
-      const t=document.createElement('div');t.className='t';t.textContent=hm(m.date);
-      b.append(tx,t);frag.append(b);
+      frag.append(buildMsg(m,d,byId,need));
     }
     box.replaceChildren(frag);
     if(near) box.scrollTop=box.scrollHeight;
+    if(need.size){
+      const ids=[...need];ids.forEach(i=>rcache.set(String(d.id)+':'+i,null));
+      client.getMessages(d.entity,{ids}).then(rs=>{
+        rs.forEach((r,i)=>{if(r)rcache.set(String(d.id)+':'+r.id,r)});
+        if(cur===d){lastSig='';loadMsgs()}
+      }).catch(()=>{});
+    }
   }catch(e){ if(first) $('ms').textContent='Ошибка: '+(e.message||e) }
-  finally{busy=false}
+  finally{busy=false;if(again){again=false;loadMsgs()}}
 }
 async function openChat(d){
-  cur=d;$('ct').textContent=d.title||'';$('cs').textContent='';show('chat');$('ms').textContent='Загрузка…';
-  refreshStatus(); await loadMsgs(true);
+  cur=d;lastSig='';setReply(null);hideSp();
+  $('ct').textContent=d.title||'';$('cs').textContent='';
+  const av=$('ca');av.style.backgroundImage='';av.textContent=(d.title||'?')[0].toUpperCase();setAvatar(av,d.entity,String(d.id));
+  show('chat');$('ms').textContent='Загрузка…';
+  refreshStatus();await loadMsgs(true);
 }
-$('b-back').onclick=()=>{cur=null;loadChats()};
-$('b-send').onclick=async()=>{
-  const t=$('tx').value.trim();if(!t||!cur)return;$('tx').value='';
-  const b=document.createElement('div');b.className='b me';
-  const tx=document.createElement('div');tx.textContent=t;
-  const tm=document.createElement('div');tm.className='t';tm.textContent=hm(Math.floor(Date.now()/1000));
-  b.append(tx,tm);$('ms').append(b);$('ms').scrollTop=1e9;
-  try{await client.sendMessage(cur.entity,{message:t});setTimeout(()=>loadMsgs(),500)}catch(e){tm.textContent+=' · не отправлено'}
-};
-$('tx').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('b-send').click()}});
+$('b-back').onclick=()=>{cur=null;hideSp();loadChats()};
 
+/* ---------- ответ и меню сообщения ---------- */
+function setReply(m){
+  replyMsg=m;$('rp').classList.toggle('on',!!m);
+  if(m){$('rn').textContent=m.out?'Вы':(senderName(m)||(cur&&cur.isUser?cur.title:'Сообщение'));$('rtx').textContent=snip(m)}
+}
+$('rx').onclick=()=>setReply(null);
+let menuMsg=null;
+function showMenu(ev,m){
+  menuMsg=m;const mn=$('mn');mn.classList.add('on');
+  mn.style.left=Math.max(8,Math.min(ev.clientX-60,innerWidth-186))+'px';
+  mn.style.top=Math.max(70,ev.clientY-110)+'px';
+  ev.stopPropagation();
+}
+$('m-reply').onclick=()=>{setReply(menuMsg);$('mn').classList.remove('on');$('tx').focus()};
+$('m-copy').onclick=()=>{try{navigator.clipboard.writeText(menuMsg.message||'')}catch{}$('mn').classList.remove('on')};
+
+/* ---------- отправка ---------- */
+async function sendText(){
+  const t=$('tx').value.trim();if(!t||!cur)return;
+  const rep=replyMsg?replyMsg.id:undefined;$('tx').value='';setReply(null);
+  try{await client.sendMessage(cur.entity,{message:t,replyTo:rep})}catch(e){$('cs').textContent='Не отправлено: '+(e.message||e)}
+  lastSig='';loadMsgs();
+}
+async function sendFiles(files){
+  if(!cur||!files.length) return;
+  const cap=$('tx').value.trim(),rep=replyMsg?replyMsg.id:undefined;$('tx').value='';setReply(null);
+  $('cs').textContent='Отправка файла…';
+  for(const f of files){
+    try{await client.sendFile(cur.entity,{file:f,caption:cap||undefined,replyTo:rep,forceDocument:!/^image\//.test(f.type)})}
+    catch(e){$('cs').textContent='Ошибка файла: '+(e.message||e);return}
+  }
+  refreshStatus();lastSig='';loadMsgs();
+}
+$('fi').onchange=e=>{const fs=[...e.target.files];e.target.value='';sendFiles(fs)};
+
+/* долгое нажатие на кнопку отправки */
+let lpT=0,lpFired=false;
+const sb=$('b-send');
+sb.addEventListener('pointerdown',()=>{lpFired=false;clearTimeout(lpT);lpT=setTimeout(()=>{lpFired=true;$('lp').classList.add('on');if(navigator.vibrate)navigator.vibrate(15)},450)});
+['pointerup','pointerleave','pointercancel'].forEach(ev=>sb.addEventListener(ev,()=>clearTimeout(lpT)));
+sb.addEventListener('contextmenu',e=>e.preventDefault());
+sb.onclick=()=>{if(lpFired){lpFired=false;return}sendText()};
+$('p-file').onclick=()=>{$('lp').classList.remove('on');$('fi').click()};
+$('p-stk').onclick=()=>{$('lp').classList.remove('on');openSp()};
+$('tx').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();sendText()}});
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#lp')&&e.target!==sb&&!sb.contains(e.target)) $('lp').classList.remove('on');
+  if(!e.target.closest('#mn')) $('mn').classList.remove('on');
+});
+
+/* ---------- стикеры и паки ---------- */
+let packs=null;const packCache=new Map();
+const hideSp=()=>$('sp').classList.remove('on');
+async function openSp(){
+  $('sp').classList.add('on');
+  if(packs) return;
+  $('sg').textContent='Загрузка…';
+  try{
+    const r=await client.invoke(new LIB.Api.messages.GetAllStickers({hash:0}));
+    packs=r.sets||[];
+    if(!packs.length){$('sg').textContent='Нет добавленных паков. Добавь их в официальном Telegram.';return}
+    const st=$('st');st.textContent='';
+    packs.forEach((p,i)=>{const c=document.createElement('div');c.className='chip';c.textContent=p.title;c.onclick=()=>pickPack(i);st.append(c)});
+    pickPack(0);
+  }catch(e){packs=null;$('sg').textContent='Ошибка: '+(e.message||e)}
+}
+async function pickPack(i){
+  [...$('st').children].forEach((c,j)=>c.classList.toggle('on',i===j));
+  const p=packs[i],g=$('sg');g.textContent='Загрузка…';
+  let docs=packCache.get(String(p.id));
+  try{
+    if(!docs){
+      const r=await client.invoke(new LIB.Api.messages.GetStickerSet({stickerset:new LIB.Api.InputStickerSetID({id:p.id,accessHash:p.accessHash}),hash:0}));
+      docs=r.documents||[];packCache.set(String(p.id),docs);
+    }
+  }catch(e){g.textContent='Ошибка: '+(e.message||e);return}
+  g.textContent='';
+  for(const doc of docs.slice(0,60)){
+    const cell=document.createElement('div');cell.textContent=stickerAlt(doc);
+    const key='d'+doc.id;
+    const put=u=>{if(u&&cell.isConnected){const im=document.createElement('img');im.src=u;cell.textContent='';cell.append(im)}};
+    if(mcache.get(key)) put(mcache.get(key)); else docThumb(doc).then(put);
+    cell.onclick=async()=>{
+      if(!cur) return;
+      const rep=replyMsg?replyMsg.id:undefined;setReply(null);hideSp();
+      try{await client.sendFile(cur.entity,{file:doc,replyTo:rep})}catch(e){$('cs').textContent='Ошибка: '+(e.message||e)}
+      lastSig='';loadMsgs();
+    };
+    g.append(cell);
+  }
+}
+
+/* ---------- обновления ---------- */
 function kick(){
   clearTimeout(kt);
   kt=setTimeout(()=>{ if(isOn('chat')) loadMsgs(); else if(isOn('chats')) loadChats(true) },300);
