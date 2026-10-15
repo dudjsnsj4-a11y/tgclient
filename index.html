@@ -63,21 +63,20 @@ input:focus{box-shadow:0 0 0 2px #3B4FC4}
 const $=i=>document.getElementById(i), ls=localStorage;
 const show=id=>{document.querySelectorAll('.scr').forEach(s=>s.classList.toggle('on',s.id===id))};
 const err=(id,t)=>{const e=$('e-'+id);if(e){e.textContent=t;e.style.display=t?'block':'none'}};
-let client, waiters={};
+let client, LIB, waiters={};
 const ask=id=>{show(id);return new Promise(r=>waiters[id]=r)};
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 
 async function lib(){
   const v='2.26';
   const m=await import(`https://esm.sh/telegram@${v}`);
-  const s=await import(`https://esm.sh/telegram@${v}/sessions`);
-  return {TelegramClient:m.TelegramClient,StringSession:s.StringSession};
+  return {TelegramClient:m.TelegramClient,StringSession:m.sessions.StringSession,Api:m.Api};
 }
 async function boot(){
   const id=+ls.tg_id, hash=ls.tg_hash;
   if(!id||!hash) return show('keys');
   try{
-    const {TelegramClient,StringSession}=await lib();
+    const {TelegramClient,StringSession,Api}=await lib();LIB={Api};
     client=new TelegramClient(new StringSession(ls.tg_session||''),id,hash,{connectionRetries:5,useWSS:true});
     await client.start({
       phoneNumber:()=>ask('phone').then(()=>$('ph').value.trim()),
@@ -98,7 +97,7 @@ $('b-chkeys').onclick=()=>{ls.clear();location.reload()};
 $('b-phone').onclick=()=>waiters.phone&&waiters.phone();
 $('b-code').onclick=()=>waiters.code&&waiters.code();
 $('b-pw').onclick=()=>waiters.pw&&waiters.pw();
-$('b-out').onclick=async()=>{try{await client.invoke(new (await import('https://esm.sh/telegram@2.26')).Api.auth.LogOut())}catch{} ls.removeItem('tg_session');location.reload()};
+$('b-out').onclick=async()=>{try{await client.invoke(new LIB.Api.auth.LogOut())}catch{} ls.removeItem('tg_session');location.reload()};
 $('b-ref').onclick=()=>loadChats();
 
 let cur;
