@@ -51,9 +51,6 @@ img.sk{display:block;width:150px;height:150px;object-fit:contain}
 .bar{position:relative;display:flex;gap:10px;padding:8px 16px calc(16px + env(safe-area-inset-bottom))}
 .bar input{border-radius:28px}
 .bar .btn{width:56px;height:56px;border-radius:20px;font-size:22px;touch-action:manipulation;user-select:none;-webkit-user-select:none;flex:none}
-.lpop{position:absolute;right:16px;bottom:84px;display:none;flex-direction:column;gap:10px;z-index:5}.lpop.on{display:flex}
-.lpop button{width:52px;height:52px;border:0;border-radius:18px;background:#C9CFFF;color:#0B1A6B;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px #0003;animation:pop .18s ease-out}
-.lpop button:nth-child(2){animation-delay:.05s;animation-fill-mode:backwards}
 @keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
 .sp{display:none;height:300px;background:#ECEDF8;border-radius:28px 28px 0 0;flex-direction:column}.sp.on{display:flex}
 .stabs{display:flex;gap:8px;overflow-x:auto;padding:12px 12px 6px;flex:none}
@@ -173,6 +170,24 @@ input,textarea{transition:box-shadow .25s var(--em),background-color .25s var(--
 .b.in{animation:msgIn .45s var(--spr);transform-origin:bottom left}.b.me.in{transform-origin:bottom right}
 @keyframes msgIn{from{opacity:0;transform:scale(.72) translateY(18px)}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* поле ввода как в Telegram */
+.dock .bar{align-items:center;gap:10px}
+.pill{flex:1;min-width:0;display:flex;align-items:center;gap:2px;height:52px;padding:0 6px;background:#F7F8FF;border-radius:26px;transition:box-shadow .25s var(--em)}
+.pill:focus-within{box-shadow:0 0 0 2px #3B4FC4}
+.dock .bar .pill input{flex:1;width:auto;min-width:0;height:100%;padding:0 6px;background:none;border-radius:0;box-shadow:none;font-size:17px}
+.ib{width:42px;height:42px;border:0;padding:0;background:none;color:#5E6178;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none}
+.ib:active{background:#E1E3FF}
+#b-send{flex:none;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:0;width:0;margin-left:-10px;opacity:0;transform:scale(.3);pointer-events:none;transition:width .4s var(--spr),margin .4s var(--spr),opacity .2s,transform .4s var(--spr),border-radius .38s var(--spr)}
+.dock .bar.has #b-send{width:52px;margin-left:0;opacity:1;transform:none;pointer-events:auto}
+
+/* иконки M3 */
+.top button svg,.rp button svg,.vb button svg{display:block}
+#b-back,#pb,#mb{width:44px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:50%;color:#27379A}
+#b-back:active,#pb:active,#mb:active{border-radius:14px}
+.rp button,.vb button{display:flex;align-items:center;justify-content:center;padding:0}
+.rp button{color:#27379A}
+.fl i{color:#27379A}.b.me .fl i{color:#fff;background:#FFFFFF2E}
 </style></head><body>
 
 <section class="scr" id="keys"><div class="pad">
@@ -200,18 +215,16 @@ input,textarea{transition:box-shadow .25s var(--em),background-color .25s var(--
 <section class="scr" id="chats"><div class="top"><div class="av sm" id="meav"></div><b>Чаты</b><button id="b-ref">Обновить</button></div>
 <div class="list" id="dl"></div></section>
 
-<section class="scr" id="chat"><div class="top"><button id="b-back">←</button><div class="av sm" id="ca"></div><div class="tt"><b id="ct"></b><span class="sub" id="cs"></span></div><button class="aab" id="b-aa" aria-label="Размер шрифта">Aa</button></div>
+<section class="scr" id="chat"><div class="top"><button id="b-back" aria-label="Назад"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><div class="av sm" id="ca"></div><div class="tt"><b id="ct"></b><span class="sub" id="cs"></span></div><button class="aab" id="b-aa" aria-label="Размер шрифта">Aa</button></div>
 <div class="aap" id="aap"><small style="color:#3B4FC4;font-weight:600">Размер шрифта в чате</small><div class="fr"><button id="aa-m">A−</button><input type="range" id="aa-r" min="12" max="32" step="1"><button id="aa-p">A+</button><span id="aa-v"></span></div></div>
 <div class="msgs" id="ms"></div>
-<div class="dock"><div class="rp" id="rp"><div class="rq"><b id="rn"></b><span id="rtx"></span></div><button id="rx">✕</button></div>
-<div class="bar" id="bar"><input id="tx" placeholder="Сообщение"><button class="btn" id="b-send">➤</button>
-<div class="lpop" id="lp"><button id="p-file" aria-label="Файл"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.5l-8.5 8.5a5 5 0 01-7-7L14 5.5a3.5 3.5 0 015 5L10.5 19a2 2 0 01-3-3L15 8.5"/></svg></button>
-<button id="p-stk" aria-label="Стикеры"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8 14c1 1.5 2.5 2.2 4 2.2s3-.7 4-2.2M9 9.5h.01M15 9.5h.01"/></svg></button></div></div>
+<div class="dock"><div class="rp" id="rp"><div class="rq"><b id="rn"></b><span id="rtx"></span></div><button id="rx" aria-label="Отмена"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button></div>
+<div class="bar" id="bar"><div class="pill"><button class="ib" id="p-stk" aria-label="Стикеры"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6a2 2 0 012-2h12a2 2 0 012 2v8l-6 6H6a2 2 0 01-2-2z"/><path d="M20 14h-4a2 2 0 00-2 2v4"/><path d="M9 9.5h.01M15 9.5h.01M8.8 13.2c1 1.1 2.5 1.5 3.8 1"/></svg></button><input id="tx" placeholder="Сообщение" autocomplete="off"><button class="ib" id="p-file" aria-label="Прикрепить"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.5l-8.5 8.5a5 5 0 01-7-7L14 5.5a3.5 3.5 0 015 5L10.5 19a2 2 0 01-3-3L15 8.5"/></svg></button></div><button class="btn" id="b-send" aria-label="Отправить"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.4l17.45-7.48a1 1 0 000-1.84L3.4 3.6a.993.993 0 00-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z"/></svg></button></div>
 <div class="sp" id="sp"><div class="stabs" id="st"></div><div class="sgrid" id="sg"></div></div>
 </div><input type="file" id="fi" multiple style="display:none"></section>
-<section class="scr" id="prof"><div class="top"><button id="pb">←</button><b>Профиль</b></div><div class="pad" id="pc" style="align-items:center"></div></section>
-<div class="vw" id="vw"><div class="vb"><button id="vx" aria-label="Закрыть">✕</button><button id="vd" aria-label="Скачать">⬇</button></div><div class="vc" id="vc"></div></div>
-<section class="scr" id="me"><div class="top"><button id="mb">←</button><b>Мой профиль</b><button id="me-edit">Изменить</button></div><div class="pad" id="mc" style="align-items:center"></div></section>
+<section class="scr" id="prof"><div class="top"><button id="pb" aria-label="Назад"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><b>Профиль</b></div><div class="pad" id="pc" style="align-items:center"></div></section>
+<div class="vw" id="vw"><div class="vb"><button id="vx" aria-label="Закрыть"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button><button id="vd" aria-label="Скачать"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg></button></div><div class="vc" id="vc"></div></div>
+<section class="scr" id="me"><div class="top"><button id="mb" aria-label="Назад"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><b>Мой профиль</b><button id="me-edit">Изменить</button></div><div class="pad" id="mc" style="align-items:center"></div></section>
 <input type="file" id="mfi" accept="image/*" style="display:none">
 <div class="mn" id="mn"><div class="rr" id="rr"></div><button id="m-reply">Ответить</button><button id="m-copy">Копировать</button></div>
 
@@ -381,6 +394,8 @@ const rcache=new Map();
 const senderName=m=>{try{const s=m.sender;return s?(s.firstName||s.title||''):''}catch{return ''}};
 function snip(m){return (labelOf(m)||'').replace(/\s+/g,' ').slice(0,80)}
 /* ---------- загрузка медиа по нажатию (M3 Expressive) ---------- */
+const IP={"vol": "M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z", "mute": "M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z", "mic": "M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15a.998.998 0 00-.98-.85c-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.78V20c0 .55.45 1 1 1s1-.45 1-1v-2.08a6.993 6.993 0 005.91-5.78c.1-.6-.39-1.14-1-1.14z", "music": "M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z", "vid": "M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z", "file": "M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"};
+const ico=(k,z=24)=>'<svg width="'+z+'" height="'+z+'" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="'+IP[k]+'"/></svg>';
 const dls=new Map(),seenM=new Map();let dlraf=0;
 const DLI='<svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg>',
       STI='<svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><rect x="7.5" y="7.5" width="9" height="9" rx="2.5"/></svg>';
@@ -483,12 +498,12 @@ function buildMsg(m,d,byId,need){
     const f=document.createElement('div');f.className='fl';
     const at=(m.document&&m.document.attributes)||[];
     const fn=at.find(a=>a.className==='DocumentAttributeFilename'),au=at.find(a=>a.className==='DocumentAttributeAudio'),vi=at.find(a=>a.className==='DocumentAttributeVideo');
-    const ic={voice:'🎤',audio:'🎵',video:'🎬',vnote:'🎬',file:'📎',other:'📎'}[k];
+    const ic={voice:'mic',audio:'music',video:'vid',vnote:'vid',file:'file',other:'file'}[k];
     const dur=(au&&au.duration)||(vi&&vi.duration)||0;
     const nm=k==='voice'?'Голосовое':k==='vnote'?'Видеосообщение':k==='video'?'Видео':(fn?fn.fileName:'Файл');
     const sz=m.document?fmtSize(num(m.document.size)):'';
     f.innerHTML='<i></i><div><b></b><small></small></div>';
-    f.querySelector('i').textContent=ic;f.querySelector('b').textContent=nm;
+    f.querySelector('i').innerHTML=ico(ic,22);f.querySelector('b').textContent=nm;
     f.querySelector('small').textContent=[dur?Math.floor(dur/60)+':'+pad(dur%60):'',sz].filter(Boolean).join(' · ');
     f.onclick=async ev=>{
       ev.stopPropagation();if(k==='video'||k==='vnote'){openVideo(m);return}const sm=f.querySelector('small'),old=sm.textContent;sm.textContent='Загрузка…';
@@ -601,7 +616,7 @@ async function openVideo(m){
     const pp=document.createElement('button');pp.className='pp';pp.setAttribute('aria-label','Пауза');
     const cv=document.createElement('canvas');
     const tm=document.createElement('span');tm.className='tm';tm.textContent='0:00 / 0:00';
-    const mu=document.createElement('button');mu.textContent='🔊';mu.setAttribute('aria-label','Звук');
+    const mu=document.createElement('button');mu.innerHTML=ico('vol',22);mu.setAttribute('aria-label','Звук');
     const fs=document.createElement('button');fs.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';fs.setAttribute('aria-label','Во весь экран');
     ctl.append(pp,cv,tm,mu,fs);w.append(v,ctl);vc.append(w);vurl=url;vname='video.mp4';
     const fmt=t=>{t=Math.max(0,Math.floor(t||0));return Math.floor(t/60)+':'+pad(t%60)};
@@ -609,7 +624,7 @@ async function openVideo(m){
     pp.onclick=()=>{if(v.paused)v.play().catch(()=>{});else v.pause()};
     v.onclick=pp.onclick;v.onplay=v.onpause=v.onended=sync;sync();
     v.ontimeupdate=v.onloadedmetadata=()=>{tm.textContent=fmt(v.currentTime)+' / '+fmt(v.duration)};
-    mu.onclick=()=>{v.muted=!v.muted;mu.textContent=v.muted?'🔇':'🔊'};
+    mu.onclick=()=>{v.muted=!v.muted;mu.innerHTML=ico(v.muted?'mute':'vol',22)};
     fs.onclick=()=>{const f=w.requestFullscreen||w.webkitRequestFullscreen;if(f)f.call(w);else if(v.webkitEnterFullscreen)v.webkitEnterFullscreen()};
     /* волнистый ползунок M3 Expressive */
     let drag=false,amp=0;const PD=12;
@@ -811,7 +826,7 @@ $('m-copy').onclick=()=>{try{navigator.clipboard.writeText(menuMsg.message||'')}
 /* ---------- отправка ---------- */
 async function sendText(){
   const t=$('tx').value.trim();if(!t||!cur)return;
-  const rep=replyMsg?replyMsg.id:undefined;$('tx').value='';setReply(null);
+  const rep=replyMsg?replyMsg.id:undefined;$('tx').value='';syncBar();setReply(null);
   try{await client.sendMessage(cur.entity,{message:t,replyTo:rep})}catch(e){$('cs').textContent='Не отправлено: '+(e.message||e)}
   lastSig='';loadMsgs();
 }
@@ -829,7 +844,7 @@ function vidMeta(f){return new Promise(res=>{
 })}
 async function sendFiles(files){
   if(!cur||!files.length) return;
-  const cap=$('tx').value.trim(),rep=replyMsg?replyMsg.id:undefined;$('tx').value='';setReply(null);
+  const cap=$('tx').value.trim(),rep=replyMsg?replyMsg.id:undefined;$('tx').value='';syncBar();setReply(null);
   $('cs').textContent='Отправка файла…';
   for(const f of files){
     try{
@@ -855,18 +870,14 @@ async function sendFiles(files){
 }
 $('fi').onchange=e=>{const fs=[...e.target.files];e.target.value='';sendFiles(fs)};
 
-/* долгое нажатие на кнопку отправки */
-let lpT=0,lpFired=false;
-const sb=$('b-send');
-sb.addEventListener('pointerdown',()=>{lpFired=false;clearTimeout(lpT);lpT=setTimeout(()=>{lpFired=true;$('lp').classList.add('on');if(navigator.vibrate)navigator.vibrate(15)},450)});
-['pointerup','pointerleave','pointercancel'].forEach(ev=>sb.addEventListener(ev,()=>clearTimeout(lpT)));
-sb.addEventListener('contextmenu',e=>e.preventDefault());
-sb.onclick=()=>{if(lpFired){lpFired=false;return}sendText()};
-$('p-file').onclick=()=>{$('lp').classList.remove('on');$('fi').click()};
-$('p-stk').onclick=()=>{$('lp').classList.remove('on');openSp()};
+/* панель ввода */
+const syncBar=()=>$('bar').classList.toggle('has',!!$('tx').value.trim());
+$('tx').addEventListener('input',syncBar);
+$('b-send').onclick=sendText;
+$('p-file').onclick=()=>$('fi').click();
+$('p-stk').onclick=()=>{if($('sp').classList.contains('on'))hideSp();else openSp()};
 $('tx').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();sendText()}});
 document.addEventListener('click',e=>{
-  if(!e.target.closest('#lp')&&e.target!==sb&&!sb.contains(e.target)) $('lp').classList.remove('on');
   if(!e.target.closest('#mn')) $('mn').classList.remove('on');
 });
 
