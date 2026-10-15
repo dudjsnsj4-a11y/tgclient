@@ -2,7 +2,7 @@ import * as esbuild from 'esbuild';
 import fs from 'fs';
 import path from 'path';
 
-fs.writeFileSync('entry.js', "export * from 'telegram';\n");
+fs.writeFileSync('entry.js', "import * as tg from 'telegram';\nexport const TelegramClient = tg.TelegramClient;\nexport const Api = tg.Api;\nexport const sessions = tg.sessions;\n");
 fs.writeFileSync('shim.js', "import { Buffer } from 'buffer';\nimport process from 'process';\nexport { Buffer, process };\n");
 
 const cryptoPath = path.resolve('node_modules/telegram/crypto/crypto.js');
