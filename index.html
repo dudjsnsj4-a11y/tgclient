@@ -26,6 +26,11 @@ input:focus{box-shadow:0 0 0 2px #3B4FC4}
 .msgs{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:6px}
 .b{max-width:80%;padding:10px 16px;border-radius:24px 24px 24px 8px;background:#E9EAF4;white-space:pre-wrap;word-break:break-word}
 .b.me{align-self:flex-end;background:#3B4FC4;color:#fff;border-radius:24px 24px 8px 24px}
+.b .t{font-size:11px;opacity:.7;text-align:right;margin-top:2px}
+.sep{align-self:center;background:#E9EAF4;border-radius:12px;padding:5px 14px;font-size:13px;font-weight:600;color:#44464F;margin:8px 0 4px}
+.top .sub{display:block;font-size:13px;color:#3B4FC4;font-weight:600;min-height:16px}
+.tt{flex:1;min-width:0}.tt b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rt{display:flex;flex-direction:column;align-items:flex-end;gap:6px;font-size:12px;color:#5A5C66}
 .bar{display:flex;gap:10px;padding:8px 16px calc(16px + env(safe-area-inset-bottom))}
 .bar input{border-radius:28px}.bar .btn{width:56px;height:56px;border-radius:20px;font-size:22px}
 </style></head><body>
@@ -55,7 +60,7 @@ input:focus{box-shadow:0 0 0 2px #3B4FC4}
 <section class="scr" id="chats"><div class="top"><b>Чаты</b><button id="b-ref">Обновить</button><button id="b-out">Выйти</button></div>
 <div class="list" id="dl"></div></section>
 
-<section class="scr" id="chat"><div class="top"><button id="b-back">←</button><b id="ct"></b></div>
+<section class="scr" id="chat"><div class="top"><button id="b-back">←</button><div class="tt"><b id="ct"></b><span class="sub" id="cs"></span></div></div>
 <div class="msgs" id="ms"></div>
 <div class="bar"><input id="tx" placeholder="Сообщение"><button class="btn" id="b-send">➤</button></div></section>
 
@@ -91,6 +96,7 @@ async function boot(){
       onError:e=>{show('phone');err('phone',e.message||String(e));return false}
     });
     ls.tg_session=client.session.save();
+    startLive();
     loadChats();
   }catch(e){ show('phone'); err('phone','Ошибка: '+(e.message||e)); }
 }
@@ -106,39 +112,113 @@ $('b-pw').onclick=()=>waiters.pw&&waiters.pw();
 $('b-out').onclick=async()=>{try{await client.invoke(new LIB.Api.auth.LogOut())}catch{} ls.removeItem('tg_session');location.reload()};
 $('b-ref').onclick=()=>loadChats();
 
-let cur;
-async function loadChats(){
-  show('chats');const dl=$('dl');dl.textContent='Загрузка…';
+let cur, busy=false, kt=0, tick=0;
+const pad=n=>String(n).padStart(2,'0');
+const hm=ts=>{const d=new Date(ts*1000);return pad(d.getHours())+':'+pad(d.getMinutes())};
+const dayDiff=ts=>{const d=new Date(ts*1000),n=new Date();return Math.round((new Date(n.getFullYear(),n.getMonth(),n.getDate())-new Date(d.getFullYear(),d.getMonth(),d.getDate()))/864e5)};
+const dayLabel=ts=>{const x=dayDiff(ts),d=new Date(ts*1000);return x===0?'Сегодня':x===1?'Вчера':d.toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:d.getFullYear()===new Date().getFullYear()?undefined:'numeric'})};
+const listTime=ts=>{const x=dayDiff(ts),d=new Date(ts*1000);return x===0?hm(ts):x===1?'Вчера':pad(d.getDate())+'.'+pad(d.getMonth()+1)};
+const lastSeen=ts=>{const x=dayDiff(ts),d=new Date(ts*1000);return x===0?'был(а) в '+hm(ts):x===1?'был(а) вчера в '+hm(ts):'был(а) '+pad(d.getDate())+'.'+pad(d.getMonth()+1)+' в '+hm(ts)};
+function statusText(u){
+  if(!u) return '';
+  if(u.bot) return 'бот';
+  const s=u.status; if(!s) return 'был(а) давно';
+  switch(s.className){
+    case 'UserStatusOnline': return 'в сети';
+    case 'UserStatusOffline': return lastSeen(s.wasOnline);
+    case 'UserStatusRecently': return 'был(а) недавно';
+    case 'UserStatusLastWeek': return 'был(а) на этой неделе';
+    case 'UserStatusLastMonth': return 'был(а) в этом месяце';
+    default: return 'был(а) давно';
+  }
+}
+const isOn=id=>$(id).classList.contains('on');
+
+async function loadChats(quiet){
+  if(!quiet){show('chats');$('dl').textContent='Загрузка…';}
   try{
     const ds=await client.getDialogs({limit:40});
-    dl.textContent='';
+    const frag=document.createDocumentFragment();
     for(const d of ds){
       const r=document.createElement('div');r.className='row';
       const t=d.title||'Без имени';
-      r.innerHTML=`<div class="av"></div><div class="m"><b></b><span></span></div>`;
+      r.innerHTML='<div class="av"></div><div class="m"><b></b><span></span></div><div class="rt"><div class="tm"></div></div>';
       r.querySelector('.av').textContent=t[0].toUpperCase();
       r.querySelector('b').textContent=t;
       r.querySelector('span').textContent=d.message?.message||'';
-      if(d.unreadCount){const b=document.createElement('div');b.className='bd';b.textContent=d.unreadCount;r.append(b)}
-      r.onclick=()=>openChat(d);dl.append(r);
+      r.querySelector('.tm').textContent=d.date?listTime(d.date):'';
+      if(d.unreadCount){const b=document.createElement('div');b.className='bd';b.textContent=d.unreadCount;r.querySelector('.rt').append(b)}
+      r.onclick=()=>openChat(d);frag.append(r);
     }
-  }catch(e){dl.textContent='Ошибка: '+(e.message||e)}
+    $('dl').replaceChildren(frag);
+  }catch(e){if(!quiet)$('dl').textContent='Ошибка: '+(e.message||e)}
+}
+async function refreshStatus(){
+  if(!cur) return;
+  const d=cur;
+  if(d.isUser){
+    let txt=statusText(d.entity);
+    try{const r=await client.invoke(new LIB.Api.users.GetUsers({id:[d.inputEntity]}));txt=statusText(r[0])}catch{}
+    if(cur===d) $('cs').textContent=txt;
+  }else if(d.isGroup){
+    const n=d.entity?.participantsCount; $('cs').textContent=n?n+' участн.':'группа';
+  }else $('cs').textContent='канал';
+}
+async function loadMsgs(first){
+  if(!cur||busy) return; busy=true; const d=cur;
+  try{
+    const ms=await client.getMessages(d.entity,{limit:50});
+    if(cur!==d) return;
+    const box=$('ms');
+    const near=first||box.scrollHeight-box.scrollTop-box.clientHeight<150;
+    const frag=document.createDocumentFragment();
+    let last=-1;
+    for(const m of [...ms].reverse()){
+      const x=dayDiff(m.date);
+      if(x!==last){last=x;const s=document.createElement('div');s.className='sep';s.textContent=dayLabel(m.date);frag.append(s)}
+      const b=document.createElement('div');b.className='b'+(m.out?' me':'');
+      const tx=document.createElement('div');tx.textContent=m.message||'[не текст]';
+      const t=document.createElement('div');t.className='t';t.textContent=hm(m.date);
+      b.append(tx,t);frag.append(b);
+    }
+    box.replaceChildren(frag);
+    if(near) box.scrollTop=box.scrollHeight;
+  }catch(e){ if(first) $('ms').textContent='Ошибка: '+(e.message||e) }
+  finally{busy=false}
 }
 async function openChat(d){
-  cur=d;$('ct').textContent=d.title;show('chat');$('ms').textContent='Загрузка…';
-  const ms=await client.getMessages(d.entity,{limit:40});
-  const box=$('ms');box.textContent='';
-  for(const m of ms.reverse()){
-    const b=document.createElement('div');b.className='b'+(m.out?' me':'');
-    b.textContent=m.message||'[не текст]';box.append(b);
-  }
-  box.scrollTop=box.scrollHeight;
+  cur=d;$('ct').textContent=d.title||'';$('cs').textContent='';show('chat');$('ms').textContent='Загрузка…';
+  refreshStatus(); await loadMsgs(true);
 }
-$('b-back').onclick=loadChats;
+$('b-back').onclick=()=>{cur=null;loadChats()};
 $('b-send').onclick=async()=>{
   const t=$('tx').value.trim();if(!t||!cur)return;$('tx').value='';
-  const b=document.createElement('div');b.className='b me';b.textContent=t;$('ms').append(b);$('ms').scrollTop=1e9;
-  try{await client.sendMessage(cur.entity,{message:t})}catch(e){b.textContent+='  (не отправлено)'}
+  const b=document.createElement('div');b.className='b me';
+  const tx=document.createElement('div');tx.textContent=t;
+  const tm=document.createElement('div');tm.className='t';tm.textContent=hm(Math.floor(Date.now()/1000));
+  b.append(tx,tm);$('ms').append(b);$('ms').scrollTop=1e9;
+  try{await client.sendMessage(cur.entity,{message:t});setTimeout(()=>loadMsgs(),500)}catch(e){tm.textContent+=' · не отправлено'}
 };
+$('tx').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('b-send').click()}});
+
+function kick(){
+  clearTimeout(kt);
+  kt=setTimeout(()=>{ if(isOn('chat')) loadMsgs(); else if(isOn('chats')) loadChats(true) },300);
+}
+function startLive(){
+  try{
+    client.addEventHandler(u=>{
+      const n=u&&u.className||'';
+      if(/Message|ReadHistory/.test(n)) kick();
+      else if(n==='UpdateUserStatus'&&isOn('chat')) refreshStatus();
+    });
+  }catch(e){console.warn('live',e)}
+  setInterval(()=>{
+    if(document.hidden||!client) return;
+    tick++;
+    if(isOn('chat')){ loadMsgs(); if(tick%6===0) refreshStatus(); }
+    else if(isOn('chats') && tick%3===0) loadChats(true);
+  },5000);
+}
 boot();
 </script></body></html>
