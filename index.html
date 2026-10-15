@@ -67,13 +67,12 @@ let client, LIB, waiters={};
 const ask=id=>{show(id);return new Promise(r=>waiters[id]=r)};
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 
-const SRC=['https://esm.sh/telegram@2.26?bundle','https://cdn.jsdelivr.net/npm/telegram@2.26/+esm','https://esm.sh/telegram@2.26'];
 async function boot(){
   const id=+ls.tg_id, hash=ls.tg_hash;
   if(!id||!hash) return show('keys');
   show('phone');err('phone','Подключение…');
   let last=null;
-  for(const u of SRC){
+  for(const u of ['./telegram.js']){
     try{
       const mod=await import(u), m=mod.TelegramClient?mod:(mod.default||mod);
       client=new m.TelegramClient(new m.sessions.StringSession(ls.tg_session||''),id,hash,{connectionRetries:3,useWSS:true});
