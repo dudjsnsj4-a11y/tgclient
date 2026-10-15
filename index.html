@@ -74,9 +74,11 @@ async function boot(){
   let last=null;
   for(const u of ['./telegram.js']){
     try{
-      const mod=await import(u), m=mod.TelegramClient?mod:(mod.default||mod);
-      client=new m.TelegramClient(new m.sessions.StringSession(ls.tg_session||''),id,hash,{connectionRetries:3,useWSS:true});
-      await client.connect(); LIB={Api:m.Api}; last=null; break;
+      const mod=await import(u), d=mod.default||{}, pick=k=>mod[k]??d[k];
+      const SS=pick('StringSession')||pick('sessions')?.StringSession, TC=pick('TelegramClient'), Api=pick('Api');
+      if(!SS||!TC) throw new Error('нет нужных классов. mod: '+Object.keys(mod).slice(0,12).join(',')+' | default: '+Object.keys(d).slice(0,12).join(','));
+      client=new TC(new SS(ls.tg_session||''),id,hash,{connectionRetries:3,useWSS:true});
+      await client.connect(); LIB={Api}; last=null; break;
     }catch(e){last=e;console.warn(u,e)}
   }
   if(last){ show('phone'); return err('phone','Не удалось подключиться: '+(last.message||last)); }
