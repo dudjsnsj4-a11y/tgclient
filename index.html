@@ -117,10 +117,10 @@ async function boot(){
   for(const u of ['./telegram.js']){
     try{
       const mod=await import(u), d=mod.default||{}, pick=k=>mod[k]??d[k];
-      const SS=pick('StringSession')||pick('sessions')?.StringSession, TC=pick('TelegramClient'), Api=pick('Api');
+      const SS=pick('StringSession')||pick('sessions')?.StringSession, TC=pick('TelegramClient'), Api=pick('Api'), CF=pick('CustomFile'), Bf=pick('Buffer');
       if(!SS||!TC) throw new Error('нет нужных классов. mod: '+Object.keys(mod).slice(0,12).join(',')+' | default: '+Object.keys(d).slice(0,12).join(','));
       client=new TC(new SS(ls.tg_session||''),id,hash,{connectionRetries:3,useWSS:true,deviceModel:'Web',systemVersion:'Android',appVersion:'1.0',langCode:'ru',systemLangCode:'ru'});
-      await client.connect(); LIB={Api}; last=null; break;
+      await client.connect(); LIB={Api,CF,Bf}; last=null; break;
     }catch(e){last=e;console.warn(u,e)}
   }
   if(last){ show('phone'); return err('phone','Не удалось подключиться: '+(last.message||last)); }
@@ -385,7 +385,11 @@ async function sendFiles(files){
   const cap=$('tx').value.trim(),rep=replyMsg?replyMsg.id:undefined;$('tx').value='';setReply(null);
   $('cs').textContent='Отправка файла…';
   for(const f of files){
-    try{await client.sendFile(cur.entity,{file:f,caption:cap||undefined,replyTo:rep,forceDocument:!/^image\//.test(f.type)})}
+    try{
+      if(!LIB.CF||!LIB.Bf) throw new Error('нужно пересобрать telegram.js (запусти build-gramjs заново)');
+      const file=new LIB.CF(f.name,f.size,'',LIB.Bf.from(await f.arrayBuffer()));
+      await client.sendFile(cur.entity,{file,caption:cap||undefined,replyTo:rep,forceDocument:!/^image\//.test(f.type)});
+    }
     catch(e){$('cs').textContent='Ошибка файла: '+(e.message||e);return}
   }
   refreshStatus();lastSig='';loadMsgs();
