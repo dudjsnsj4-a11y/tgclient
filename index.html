@@ -1,16 +1,17 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <meta name="theme-color" content="#ECEDF8"><link rel="manifest" href="manifest.json">
 <title>SoGram</title>
 <style>:root{--c-bg:#F7F8FF;--c-sh:#ECEDF8;--c-sc:#E9EAF4;--c-pc:#E1E3FF;--c-pc2:#DCE4FF;--c-pc3:#C9CFFF;--c-ph:#D5D7E6;--c-p:#3B4FC4;--c-onp:#fff;--c-ac:#3B4FC4;--c-onpc:#27379A;--c-tx:#1B1B21;--c-tx2:#5A5C66;--c-menu:#fff;--c-lin:#3B4FC4;--c-lout:#fff;--c-rd:#A6FFE4}
 input,textarea{color:var(--c-tx)}::placeholder{color:var(--c-tx2);opacity:.85}
 .msgs{background:var(--c-wp,none) center/cover no-repeat}
-.b.stk.in{animation:stkIn .65s var(--spr),fadeIn .15s ease-out}@keyframes stkIn{from{transform:translateY(44px) scale(.3) rotate(-10deg)}}
+.b.stk.in{animation:stkIn .4s cubic-bezier(.22,1,.36,1),fadeIn .15s ease-out}@keyframes stkIn{from{transform:translateY(40px) scale(.5)}}
 .thn{font-weight:700}.thb{display:flex;gap:8px;flex-wrap:wrap}
 .sws{display:flex;gap:6px}.sws i{width:28px;height:28px;border-radius:10px;box-shadow:0 0 0 1px #0002}
 
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{height:100%;margin:0}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{height:var(--vh,100%);margin:0;overflow:hidden}
+body{position:fixed;left:0;right:0;top:0;width:100%}
 body{font-family:system-ui,sans-serif;background:var(--c-bg);color:var(--c-tx)}
 .scr{display:none;height:100%;flex-direction:column}.scr.on{display:flex}
 h1{font-size:36px;letter-spacing:-1px;margin:0}
@@ -173,8 +174,10 @@ input,textarea{transition:box-shadow .25s var(--em),background-color .25s var(--
 @keyframes upIn{from{opacity:0;transform:translateY(36px)}}
 .vw.on{animation:vwIn .32s var(--emd)}
 @keyframes vwIn{from{opacity:0;transform:scale(.92)}}
-.b.in{animation:msgIn .55s var(--spr),fadeIn .2s ease-out;transform-origin:bottom left}.b.me.in{transform-origin:bottom right}
-@keyframes msgIn{from{transform:translateY(28px) scale(.8)}}
+.b.in{animation:msgIn .28s cubic-bezier(.22,1,.36,1),fadeIn .18s ease-out;transform-origin:bottom left}
+.b.me.in{transform-origin:bottom right;animation:msgOut .34s cubic-bezier(.22,1,.36,1),fadeIn .16s ease-out}
+@keyframes msgIn{from{transform:translateY(14px) scale(.92)}}
+@keyframes msgOut{from{transform:translateY(34px) translateX(8px) scale(.82)}}
 @keyframes fadeIn{from{opacity:0}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 
@@ -1454,6 +1457,23 @@ function startLive(){
     if(isOn('chat')){ loadMsgs(); if(tick%6===0) refreshStatus(); }
     else if(isOn('chats') && tick%3===0) loadChats(true);
   },5000);
+}
+/* клавиатура: подгоняем приложение под видимую область */
+{
+  const vv=window.visualViewport,rs=document.documentElement.style;
+  let lastH=vv?vv.height:innerHeight;
+  const fit=()=>{
+    const h=vv?vv.height:innerHeight,box=$('ms');
+    const near=box&&box.scrollHeight-box.scrollTop-box.clientHeight<150;
+    rs.setProperty('--vh',h+'px');
+    document.body.style.top=(vv?vv.offsetTop:0)+'px';
+    if(window.scrollY)window.scrollTo(0,0);
+    if(near&&h<lastH&&isOn('chat'))requestAnimationFrame(()=>{box.scrollTop=box.scrollHeight});
+    lastH=h;
+  };
+  if(vv){vv.addEventListener('resize',fit);vv.addEventListener('scroll',fit)}
+  addEventListener('resize',fit);addEventListener('scroll',()=>{if(window.scrollY)window.scrollTo(0,0)});
+  fit();
 }
 boot();
 </script></body></html>
